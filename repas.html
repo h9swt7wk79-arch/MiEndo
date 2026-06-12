@@ -235,7 +235,7 @@
   <a href="rendez-vous.html" aria-label="Rendez-vous"><img src="assets/icons/calendrier.svg" alt=""></a>
   <a href="analyses.html" aria-label="Analyses"><img src="assets/icons/stats.svg" alt=""></a>
   <a href="bien-etre.html" aria-label="Conseils bien-être"><img src="assets/icons/feuille.svg" alt=""></a>
-  <a href="#" aria-label="Profil"><img src="assets/icons/profil.svg" alt=""></a>
+  <a href="profil.html" aria-label="Profil"><img src="assets/icons/profil.svg" alt=""></a>
 </nav>
 
 <!-- ============ FIREBASE ============ -->
@@ -394,7 +394,7 @@
 
   /* ---------- auth ---------- */
   auth.onAuthStateChanged(user => {
-    if (!user) { window.location.href = 'index.html'; return; }
+    if (!user || user.isAnonymous) { window.location.href = 'index.html'; return; }
     uid = user.uid;
     chargerJour();
   });
