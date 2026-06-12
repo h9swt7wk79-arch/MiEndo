@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MiEndo — Profil</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FD8BAB">
+<link rel="apple-touch-icon" href="assets/icone-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="MiEndo">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Katibeh&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --noir:#000;--blanc:#FFF;
+    --gris-texte:#828282;--gris-bordure:#E6E6E6;
+    --rose:#FD8BAB;--rose-pale:rgba(253,139,171,.34);
+    --radius:10px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:14px;color:var(--noir);
+    min-height:100dvh;padding-bottom:88px;
+    background:
+      linear-gradient(to bottom, rgba(255,255,255,.62), rgba(255,255,255,.8)),
+      url('assets/bg.jpg') center/cover no-repeat fixed;
+  }
+  .logo-haut{display:block;width:54px;margin:14px auto 4px;}
+  .entete{display:grid;grid-template-columns:36px 1fr 36px;align-items:center;padding:0 16px;margin-bottom:14px;}
+  .retour{background:none;border:none;cursor:pointer;font-size:22px;line-height:1;text-align:left;padding:4px;}
+  .titre-page{font-family:'Katibeh',serif;font-size:38px;font-weight:400;text-align:center;line-height:.9;margin-top:8px;}
+  .contenu{padding:0 12px;display:flex;flex-direction:column;gap:18px;}
+  .carte{
+    background:rgba(255,255,255,.72);
+    border-radius:14px;
+    padding:14px 16px 16px;
+  }
+  .carte h2{font-size:21px;font-weight:700;margin-bottom:8px;}
+  .ligne-info{font-size:13.5px;color:#474646;padding:2px 0 2px 10px;}
+  .centre{
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    padding:6px 0 2px;cursor:pointer;
+  }
+  .centre .emoji{font-size:42px;line-height:1;}
+  .centre .legende{color:#A3A3A3;font-size:11.5px;}
+  .code-partenaire{
+    text-align:center;
+    font-weight:600;font-size:15px;letter-spacing:.18em;
+    color:#474646;
+    padding:6px 0;
+    user-select:all;
+  }
+  .ligne-partenaire{display:flex;align-items:center;justify-content:space-around;gap:8px;}
+  .btn-discret{
+    background:none;border:none;cursor:pointer;
+    font:inherit;font-size:12px;color:var(--gris-texte);
+    text-decoration:underline;padding:4px;
+  }
+  .btn-deconnexion{
+    width:100%;height:44px;
+    background:var(--blanc);color:#B3261E;
+    border:1px solid var(--gris-bordure);border-radius:12px;
+    font:inherit;font-weight:600;cursor:pointer;
+  }
+  input[type=file]{display:none;}
+  .confirmation{text-align:center;font-size:12.5px;color:#1E7B34;height:16px;}
+  .nav-bas{
+    position:fixed;left:0;right:0;bottom:0;background:var(--blanc);
+    border-top:1px solid var(--gris-bordure);
+    display:flex;justify-content:space-around;align-items:center;
+    padding:10px 8px calc(10px + env(safe-area-inset-bottom));z-index:10;
+  }
+  .nav-bas a{display:flex;align-items:center;justify-content:center;width:44px;height:40px;border-radius:10px;}
+  .nav-bas img{width:30px;height:30px;}
+</style>
+</head>
+<body>
+
+<img class="logo-haut" src="assets/logo.png" alt="MiEndo">
+
+<div class="entete">
+  <button class="retour" aria-label="Retour" onclick="history.back()">‹</button>
+  <h1 class="titre-page">Profil</h1>
+  <span></span>
+</div>
+
+<div class="contenu">
+
+  <div class="carte">
+    <h2>Compte</h2>
+    <div class="ligne-info">Adresse e-mail : <span id="info-email">–</span></div>
+    <div class="ligne-info">Âge : <span id="info-age">–</span></div>
+    <div class="ligne-info">Nombre de cycles : <span id="info-cycles">–</span></div>
+    <div class="ligne-info">Objectifs : <span id="info-objectifs">–</span></div>
+  </div>
+
+  <div class="carte">
+    <h2>Espace partenaire</h2>
+    <div class="ligne-partenaire">
+      <div class="centre" id="zone-code">
+        <span class="emoji">💑</span>
+        <span class="legende" id="legende-code">Dévoiler le code associé</span>
+      </div>
+      <div class="code-partenaire" id="code-affiche">••••••••</div>
+    </div>
+    <div style="text-align:center;">
+      <button class="btn-discret" id="btn-copier" hidden>Copier le code</button>
+    </div>
+  </div>
+
+  <div class="carte">
+    <h2>Exportation des données</h2>
+    <div class="centre" id="btn-export-pdf">
+      <span class="emoji">📄</span>
+      <span class="legende">Cliquez ci-dessus pour exporter un rapport au format pdf</span>
+    </div>
+    <div style="text-align:center;">
+      <button class="btn-discret" id="btn-export-json">Exporter aussi une sauvegarde (JSON)</button>
+    </div>
+  </div>
+
+  <div class="carte">
+    <h2>Importation des données</h2>
+    <label class="centre" for="fichier-import">
+      <span class="emoji">📥</span>
+      <span class="legende">Cliquez ci-dessus (sauvegarde MiEndo ou export Flo)</span>
+    </label>
+    <input type="file" id="fichier-import" accept=".json,application/json">
+    <div class="confirmation" id="confirmation-import"></div>
+  </div>
+
+  <div class="carte" style="text-align:center;">
+    <h2 style="margin-bottom:6px;">Soutenir MiEndo</h2>
+    <p style="font-size:12.5px;color:var(--gris-texte);margin-bottom:10px;">MiEndo est gratuite, sans pub et sans revente de données. Si elle t'aide, tu peux soutenir son développement 💗</p>
+    <a href="https://ko-fi.com/miendo" target="_blank" rel="noopener"
+       style="display:inline-block;background:var(--rose);color:#FFF;font-weight:600;
+              padding:10px 22px;border-radius:999px;text-decoration:none;">
+      ☕ Offrir un café
+    </a>
+  </div>
+
+  <button class="btn-deconnexion" id="btn-deconnexion">Se déconnecter</button>
+
+  <button class="btn-discret" id="btn-supprimer" style="color:#B3261E;">Supprimer mon compte et toutes mes données</button>
+  <div class="confirmation" id="confirmation-suppression" style="color:#B3261E;"></div>
+
+</div>
+
+<nav class="nav-bas">
+  <a href="cycle.html" aria-label="Cycle"><img src="assets/icons/lune.svg" alt=""></a>
+  <a href="repas.html" aria-label="Repas"><img src="assets/icons/poids.svg" alt=""></a>
+  <a href="rendez-vous.html" aria-label="Rendez-vous"><img src="assets/icons/calendrier.svg" alt=""></a>
+  <a href="analyses.html" aria-label="Analyses"><img src="assets/icons/stats.svg" alt=""></a>
+  <a href="bien-etre.html" aria-label="Conseils bien-être"><img src="assets/icons/feuille.svg" alt=""></a>
+  <a href="profil.html" aria-current="page" aria-label="Profil"><img src="assets/icons/profil.svg" alt=""></a>
+</nav>
+
+<!-- ============ FIREBASE ============ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDunVhY9SnccIn78SU0SWyFDrXDrbSM9dw",
+    authDomain: "mimiendo-73245.firebaseapp.com",
+    projectId: "mimiendo-73245",
+    storageBucket: "mimiendo-73245.firebasestorage.app",
+    messagingSenderId: "989010109768",
+    appId: "1:989010109768:web:8cf8cf916f04ac5feebf7d",
+    measurementId: "G-2ZF2VBZP3G"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  let uid = null;
+  let profil = {};
+  let codeVisible = false;
+
+  const LIBELLES_OBJECTIFS = {
+    tomber_enceinte: 'tomber enceinte',
+    suivre_cycle: 'suivi de cycle',
+    comprendre_douleurs: 'observation des douleurs'
+  };
+
+  auth.onAuthStateChanged(async user => {
+    if (!user || user.isAnonymous) { window.location.href = 'index.html'; return; }
+    uid = user.uid;
+    document.getElementById('info-email').textContent = user.email || '(connexion Google/Apple)';
+
+    const doc = await db.collection('users').doc(uid).get();
+    profil = doc.exists ? doc.data() : {};
+    document.getElementById('info-age').textContent = profil.age ? profil.age + ' ans' : '–';
+    document.getElementById('info-objectifs').textContent =
+      (profil.objectifs || []).map(o => LIBELLES_OBJECTIFS[o] || o).join(' et ') || '–';
+
+    // nombre de cycles = nombre de débuts de règles repérés dans le journal
+    const snap = await db.collection('users').doc(uid).collection('journal').get();
+    const dates = snap.docs.filter(d => d.data().regles).map(d => d.id).sort();
+    let nb = 0, prec = null;
+    dates.forEach(dt => {
+      if (!prec || (new Date(dt) - new Date(prec)) / 86400000 > 1) nb++;
+      prec = dt;
+    });
+    document.getElementById('info-cycles').textContent = nb || '–';
+
+    if (profil.codePartenaire) document.getElementById('legende-code').textContent = 'Dévoiler le code associé';
+  });
+
+  /* ---------- code partenaire ---------- */
+  function genererCode(){
+    const lettres = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sans caractères ambigus
+    let c = '';
+    for (let i = 0; i < 8; i++) c += lettres[Math.floor(Math.random() * lettres.length)];
+    return c;
+  }
+
+  document.getElementById('zone-code').addEventListener('click', async () => {
+    if (!uid) return;
+    if (!profil.codePartenaire){
+      // première fois : génération + création du document de partage
+      const code = genererCode();
+      // on amorce le document avec les infos de cycle actuelles,
+      // pour que le partenaire voie quelque chose dès la première connexion
+      const amorce = {
+        proprietaire: uid,
+        creeLe: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      if (profil.lastPeriodStart){
+        const L = profil.cycleLength || 28, P = profil.periodLength || 5;
+        const debut = new Date(profil.lastPeriodStart); debut.setHours(0,0,0,0);
+        const auj = new Date(); auj.setHours(0,0,0,0);
+        const jour = ((Math.round((auj-debut)/86400000) % L) + L) % L + 1;
+        const ov = L - 14;
+        amorce.jourCycle = jour;
+        amorce.phase = jour <= P ? 'Phase menstruelle'
+          : jour < ov-1 ? 'Phase folliculaire'
+          : jour <= ov+1 ? 'Phase ovulatoire' : 'Phase lutéale';
+        const proch = new Date(); proch.setDate(proch.getDate() + (L - jour + 1));
+        amorce.prochainesRegles = proch.getFullYear() + '-' +
+          String(proch.getMonth()+1).padStart(2,'0') + '-' + String(proch.getDate()).padStart(2,'0');
+      }
+      await db.collection('partage').doc(code).set(amorce);
+      await db.collection('users').doc(uid).set({ codePartenaire: code }, { merge:true });
+      profil.codePartenaire = code;
+    }
+    codeVisible = !codeVisible;
+    document.getElementById('code-affiche').textContent =
+      codeVisible ? profil.codePartenaire : '••••••••';
+    document.getElementById('legende-code').textContent =
+      codeVisible ? 'Masquer le code' : 'Dévoiler le code associé';
+    document.getElementById('btn-copier').hidden = !codeVisible;
+  });
+
+  document.getElementById('btn-copier').addEventListener('click', async () => {
+    await navigator.clipboard.writeText(profil.codePartenaire);
+    document.getElementById('btn-copier').textContent = 'Copié ✓';
+    setTimeout(() => document.getElementById('btn-copier').textContent = 'Copier le code', 2000);
+  });
+
+  /* ---------- export ---------- */
+  async function chargerTout(){
+    const [journal, aliments, rdv] = await Promise.all([
+      db.collection('users').doc(uid).collection('journal').get(),
+      db.collection('users').doc(uid).collection('aliments').get(),
+      db.collection('users').doc(uid).collection('rendezvous').get()
+    ]);
+    return {
+      profil,
+      journal: Object.fromEntries(journal.docs.map(d => [d.id, nettoyer(d.data())])),
+      aliments: aliments.docs.map(d => nettoyer(d.data())),
+      rendezvous: rdv.docs.map(d => nettoyer(d.data()))
+    };
+  }
+  function nettoyer(o){
+    const r = {};
+    for (const [k,v] of Object.entries(o)){
+      if (v && typeof v.toDate === 'function') r[k] = v.toDate().toISOString();
+      else r[k] = v;
+    }
+    return r;
+  }
+
+  // PDF : rapport imprimable (le navigateur propose "Enregistrer en PDF")
+  document.getElementById('btn-export-pdf').addEventListener('click', async () => {
+    if (!uid) return;
+    const donnees = await chargerTout();
+    const dates = Object.keys(donnees.journal).sort().reverse().slice(0, 31); // dernier mois
+    const lignes = dates.map(dt => {
+      const j = donnees.journal[dt];
+      const elems = [];
+      if (typeof j.douleur === 'number') elems.push('Douleur ' + j.douleur + '/10');
+      if (j.regles) elems.push('Règles' + (j.flux ? ' ' + j.flux : ''));
+      if ((j.douleurs || []).length) elems.push(j.douleurs.join(', '));
+      if ((j.symptomes || []).length) elems.push(j.symptomes.join(', '));
+      if ((j.digestion || []).length) elems.push('Digestion : ' + j.digestion.join(', '));
+      if ((j.medicaments || []).length) elems.push('Médicaments : ' + j.medicaments.join(', '));
+      if (j.notes) elems.push('« ' + j.notes + ' »');
+      return `<tr><td>${dt}</td><td>${elems.join(' — ') || '–'}</td></tr>`;
+    }).join('');
+    const f = window.open('', '_blank');
+    f.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
+      <title>MiEndo — Rapport</title>
+      <style>
+        body{font-family:Arial,sans-serif;font-size:12px;color:#000;padding:24px;}
+        h1{font-size:20px;} h2{font-size:14px;margin:14px 0 6px;}
+        table{width:100%;border-collapse:collapse;}
+        td,th{border:1px solid #ccc;padding:6px 8px;text-align:left;vertical-align:top;}
+        th{background:#FCE4EC;}
+        .meta{color:#555;}
+      </style></head><body>
+      <h1>MiEndo — Rapport de suivi</h1>
+      <p class="meta">Généré le ${new Date().toLocaleDateString('fr-FR')} —
+        ${donnees.profil.age ? donnees.profil.age + ' ans — ' : ''}
+        Contraception : ${donnees.profil.contraception || 'non renseignée'}</p>
+      <h2>Journal des 31 derniers jours</h2>
+      <table><tr><th>Date</th><th>Observations</th></tr>${lignes || '<tr><td colspan=2>Aucune donnée</td></tr>'}</table>
+      <p class="meta">Document destiné à faciliter l'échange avec l'équipe de soins. Données déclaratives saisies par la patiente.</p>
+      <script>window.print();<\/script><script>
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body></html>`);
+    f.document.close();
+  });
+
+  // JSON : sauvegarde complète
+  document.getElementById('btn-export-json').addEventListener('click', async () => {
+    if (!uid) return;
+    const donnees = await chargerTout();
+    const blob = new Blob([JSON.stringify(donnees, null, 2)], { type:'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'miendo-sauvegarde-' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  /* ---------- import (sauvegarde MiEndo OU export Flo) ---------- */
+
+  // Cherche récursivement le tableau "cycles" de Flo, où qu'il soit dans le fichier
+  function trouverCyclesFlo(obj, profondeur = 0){
+    if (!obj || typeof obj !== 'object' || profondeur > 6) return null;
+    if (Array.isArray(obj)){
+      if (obj.length && obj[0] && typeof obj[0] === 'object' && 'period_start_date' in obj[0]) return obj;
+      for (const el of obj){ const r = trouverCyclesFlo(el, profondeur + 1); if (r) return r; }
+      return null;
+    }
+    if (Array.isArray(obj.cycles) && obj.cycles.length &&
+        obj.cycles[0] && 'period_start_date' in obj.cycles[0]) return obj.cycles;
+    for (const v of Object.values(obj)){ const r = trouverCyclesFlo(v, profondeur + 1); if (r) return r; }
+    return null;
+  }
+  function trouverProfilFlo(obj, profondeur = 0){
+    if (!obj || typeof obj !== 'object' || profondeur > 6) return null;
+    if (Array.isArray(obj.profiles) && obj.profiles.length && obj.profiles[0].birth_date !== undefined)
+      return obj.profiles[0];
+    for (const v of Object.values(obj)){
+      if (v && typeof v === 'object'){ const r = trouverProfilFlo(v, profondeur + 1); if (r) return r; }
+    }
+    return null;
+  }
+  function cleDepuisDate(d){
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function mediane(liste){
+    if (!liste.length) return null;
+    const t = [...liste].sort((a,b) => a-b);
+    return t[Math.floor(t.length/2)];
+  }
+
+  async function importerFlo(donnees){
+    const cycles = trouverCyclesFlo(donnees);
+    if (!cycles) return null;
+
+    const FLUX = { 1:'💧', 2:'💧💧', 3:'🌊' };
+    let lot = db.batch(), n = 0, joursImportes = 0;
+    const valider = async () => { await lot.commit(); lot = db.batch(); n = 0; };
+    const debuts = [];
+    const dureesRegles = [];
+
+    for (const c of cycles){
+      if (!c.period_start_date || c.pregnant) continue;
+      const debut = new Date(c.period_start_date.replace(' ', 'T'));
+      if (isNaN(debut)) continue;
+      const fin = c.period_end_date ? new Date(c.period_end_date.replace(' ', 'T')) : new Date(debut);
+      debuts.push(debut);
+      const duree = Math.round((fin - debut) / 86400000) + 1;
+      if (duree >= 2 && duree <= 10) dureesRegles.push(duree);
+
+      // intensité par jour : {"0": 2, "1": 3, ...} (chaîne JSON chez Flo)
+      let intensites = {};
+      try { intensites = JSON.parse(c.period_intensity || '{}'); } catch(e){}
+
+      const d = new Date(debut);
+      let offset = 0;
+      while (d <= fin && offset < 15){ // garde-fou
+        const entree = { regles: true, importeDe: 'flo' };
+        if (FLUX[intensites[String(offset)]]) entree.flux = FLUX[intensites[String(offset)]];
+        lot.set(db.collection('users').doc(uid).collection('journal').doc(cleDepuisDate(d)),
+                entree, { merge: true });
+        joursImportes++;
+        if (++n >= 400) await valider();
+        d.setDate(d.getDate() + 1);
+        offset++;
+      }
+    }
+    if (n) await valider();
+
+    // paramètres de cycle estimés à partir de l'historique importé
+    if (debuts.length){
+      debuts.sort((a,b) => a-b);
+      const dernierDebut = debuts[debuts.length - 1];
+      const longueurs = [];
+      for (let i = 1; i < debuts.length; i++){
+        const l = Math.round((debuts[i] - debuts[i-1]) / 86400000);
+        if (l >= 15 && l <= 60) longueurs.push(l); // on ignore les écarts aberrants (pauses d'utilisation)
+      }
+      const maj = { lastPeriodStart: cleDepuisDate(dernierDebut) };
+      const cycleEstime = mediane(longueurs);
+      if (cycleEstime) maj.cycleLength = cycleEstime;
+      const dureeEstimee = mediane(dureesRegles);
+      if (dureeEstimee) maj.periodLength = dureeEstimee;
+
+      // âge depuis la date de naissance du profil Flo, si absent
+      const profilFlo = trouverProfilFlo(donnees);
+      if (profilFlo && profilFlo.birth_date && !profil.age){
+        const naissance = new Date(profilFlo.birth_date);
+        if (!isNaN(naissance)){
+          const auj = new Date();
+          let age = auj.getFullYear() - naissance.getFullYear();
+          if (auj < new Date(auj.getFullYear(), naissance.getMonth(), naissance.getDate())) age--;
+          if (age > 10 && age < 100) maj.age = age;
+        }
+      }
+      await db.collection('users').doc(uid).set(maj, { merge: true });
+    }
+    return { cycles: debuts.length, jours: joursImportes };
+  }
+
+  document.getElementById('fichier-import').addEventListener('change', async e => {
+    const fichier = e.target.files[0];
+    const confirmation = document.getElementById('confirmation-import');
+    if (!fichier || !uid) return;
+    confirmation.style.color = '';
+    confirmation.textContent = 'Import en cours…';
+    try {
+      const donnees = JSON.parse(await fichier.text());
+
+      // 1) sauvegarde MiEndo
+      if (donnees.journal || donnees.aliments || donnees.rendezvous){
+        let lot = db.batch(), n = 0;
+        const valider = async () => { await lot.commit(); lot = db.batch(); n = 0; };
+        for (const [dt, val] of Object.entries(donnees.journal || {})){
+          lot.set(db.collection('users').doc(uid).collection('journal').doc(dt), val, { merge:true });
+          if (++n >= 400) await valider();
+        }
+        for (const a of donnees.aliments || []){
+          lot.set(db.collection('users').doc(uid).collection('aliments').doc(), a);
+          if (++n >= 400) await valider();
+        }
+        for (const r of donnees.rendezvous || []){
+          lot.set(db.collection('users').doc(uid).collection('rendezvous').doc(), r);
+          if (++n >= 400) await valider();
+        }
+        if (n) await lot.commit();
+        confirmation.textContent = 'Sauvegarde MiEndo importée ✓';
+        return;
+      }
+
+      // 2) export Flo
+      const resultat = await importerFlo(donnees);
+      if (resultat){
+        confirmation.textContent =
+          `Import Flo réussi ✓ ${resultat.cycles} cycle${resultat.cycles > 1 ? 's' : ''}, ${resultat.jours} jours de règles.`;
+        return;
+      }
+
+      throw new Error('Format non reconnu');
+    } catch (err){
+      console.error(err);
+      confirmation.textContent = err.message === 'Format non reconnu'
+        ? 'Format non reconnu : ni sauvegarde MiEndo, ni export Flo avec cycles.'
+        : 'Fichier illisible (JSON invalide ou incomplet).';
+      confirmation.style.color = '#B3261E';
+    }
+  });
+
+  /* ---------- suppression de compte (droit à l'effacement) ---------- */
+  async function supprimerCollection(nom){
+    // suppression par lots de toutes les entrées d'une sous-collection
+    const ref = db.collection('users').doc(uid).collection(nom);
+    let snap = await ref.limit(400).get();
+    while (!snap.empty){
+      const lot = db.batch();
+      snap.docs.forEach(d => lot.delete(d.ref));
+      await lot.commit();
+      snap = await ref.limit(400).get();
+    }
+  }
+
+  document.getElementById('btn-supprimer').addEventListener('click', async () => {
+    if (!uid) return;
+    const msg = document.getElementById('confirmation-suppression');
+    const saisie = prompt(
+      "Cette action est définitive : ton compte et TOUTES tes données (journal, repas, rendez-vous, partage) seront effacés.\n\nPour confirmer, écris SUPPRIMER :");
+    if (saisie === null) return;
+    if (saisie.trim().toUpperCase() !== 'SUPPRIMER'){
+      msg.textContent = 'Suppression annulée (confirmation incorrecte).';
+      setTimeout(() => msg.textContent = '', 3000);
+      return;
+    }
+    msg.textContent = 'Suppression en cours…';
+    try {
+      await supprimerCollection('journal');
+      await supprimerCollection('aliments');
+      await supprimerCollection('rendezvous');
+      if (profil.codePartenaire){
+        await db.collection('partage').doc(profil.codePartenaire).delete();
+      }
+      await db.collection('users').doc(uid).delete();
+      await auth.currentUser.delete(); // déclenche la redirection via onAuthStateChanged
+    } catch (err){
+      console.error(err);
+      if (err.code === 'auth/requires-recent-login'){
+        msg.textContent = 'Par sécurité, déconnecte-toi, reconnecte-toi, puis relance la suppression : tes données sont déjà effacées, il ne reste que le compte.';
+      } else {
+        msg.textContent = 'Erreur pendant la suppression. Réessaie ou écris-nous : contact.miendo@gmail.com';
+      }
+    }
+  });
+
+  /* ---------- déconnexion ---------- */
+  document.getElementById('btn-deconnexion').addEventListener('click', async () => {
+    await auth.signOut(); // la redirection est gérée par onAuthStateChanged
+  });
+</script>
+</body>
+</html>
