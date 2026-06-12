@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MiEndo — Bilan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Katibeh&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --noir:#000000;
+    --blanc:#FFFFFF;
+    --gris-texte:#828282;
+    --gris-bordure:#E6E6E6;
+    --rose:#FD8BAB;
+    --rose-pale:rgba(253,139,171,.34);
+    --radius:10px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:14px;
+    color:var(--noir);
+    min-height:100dvh;
+    padding-bottom:88px;
+    background:
+      linear-gradient(to bottom, rgba(255,255,255,.6), rgba(255,255,255,.8)),
+      url('assets/bg.jpg') center/cover no-repeat fixed;
+  }
+  .logo-haut{display:block;width:54px;margin:14px auto 4px;}
+  .entete{
+    display:grid;grid-template-columns:36px 1fr 36px;
+    align-items:center;padding:0 16px;margin-bottom:8px;
+  }
+  .retour{
+    background:none;border:none;cursor:pointer;
+    font-size:22px;line-height:1;color:var(--noir);
+    text-align:left;padding:4px;
+  }
+  .titre-page{
+    font-family:'Katibeh',serif;
+    font-size:38px;font-weight:400;
+    text-align:center;line-height:.9;margin-top:8px;
+  }
+  .date-nav{
+    display:flex;align-items:center;justify-content:center;gap:14px;
+    margin-bottom:14px;
+  }
+  .date-nav button{
+    background:none;border:none;cursor:pointer;
+    font-size:17px;color:var(--gris-texte);padding:2px 10px;
+  }
+  .date-nav span{font-weight:600;font-size:13px;text-transform:capitalize;}
+  .contenu{padding:0 16px;display:flex;flex-direction:column;gap:14px;}
+  .carte{
+    background:var(--blanc);
+    border-radius:16px;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
+    padding:16px;
+  }
+  .carte h2{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;justify-content:space-between;}
+  .valeur-eva{color:var(--rose);font-weight:700;}
+  input[type=range]{
+    width:100%;
+    accent-color:var(--rose);
+    height:28px;
+  }
+  .bornes{
+    display:flex;justify-content:space-between;
+    color:var(--gris-texte);font-size:11px;margin-top:2px;
+  }
+  .humeurs{display:flex;justify-content:space-around;}
+  .humeur{
+    background:none;border:2px solid transparent;cursor:pointer;
+    font-size:27px;padding:6px;border-radius:12px;
+    transition:transform .1s;
+  }
+  .humeur.choisie{border-color:var(--rose);background:var(--rose-pale);transform:scale(1.08);}
+  .symptomes{display:flex;flex-wrap:wrap;gap:8px;}
+  .symptome{
+    border:1px solid var(--gris-bordure);
+    background:var(--blanc);
+    border-radius:999px;
+    padding:7px 14px;
+    font:inherit;font-size:13px;
+    cursor:pointer;
+  }
+  .symptome.choisi{
+    background:var(--rose-pale);
+    border-color:var(--rose);
+    font-weight:600;
+  }
+  textarea{
+    width:100%;
+    border:1px solid var(--gris-bordure);
+    border-radius:var(--radius);
+    padding:10px 12px;
+    font:inherit;
+    resize:vertical;
+    min-height:70px;
+    outline:none;
+  }
+  textarea:focus{border-color:var(--gris-texte);}
+  .btn-valider{
+    width:100%;height:46px;
+    background:var(--noir);color:var(--blanc);
+    border:none;border-radius:var(--radius);
+    font:inherit;font-weight:500;font-size:15px;
+    cursor:pointer;
+  }
+  .btn-valider:active{opacity:.8;}
+  .confirmation{
+    text-align:center;color:#1E7B34;font-size:13px;
+    height:18px;
+  }
+  .nav-bas{
+    position:fixed;left:0;right:0;bottom:0;
+    background:var(--blanc);
+    border-top:1px solid var(--gris-bordure);
+    display:flex;justify-content:space-around;align-items:center;
+    padding:10px 8px calc(10px + env(safe-area-inset-bottom));
+    z-index:10;
+  }
+  .nav-bas a{
+    display:flex;align-items:center;justify-content:center;
+    width:44px;height:40px;border-radius:10px;
+  }
+  .nav-bas a:focus-visible{outline:2px solid var(--noir);}
+  .nav-bas img{width:30px;height:30px;}
+</style>
+</head>
+<body>
+
+<img class="logo-haut" src="assets/logo.png" alt="MiEndo">
+
+<div class="entete">
+  <button class="retour" aria-label="Retour" onclick="history.back()">‹</button>
+  <h1 class="titre-page">Bilan</h1>
+  <span></span>
+</div>
+
+<div class="date-nav">
+  <button id="jour-prec" aria-label="Jour précédent">‹</button>
+  <span id="date-affichee"></span>
+  <button id="jour-suiv" aria-label="Jour suivant">›</button>
+</div>
+
+<div class="contenu">
+
+  <div class="carte">
+    <h2>Douleur <span class="valeur-eva" id="val-douleur">0</span></h2>
+    <input type="range" id="douleur" min="0" max="10" step="1" value="0">
+    <div class="bornes"><span>Aucune</span><span>Insupportable</span></div>
+  </div>
+
+  <div class="carte">
+    <h2>Fatigue <span class="valeur-eva" id="val-fatigue">0</span></h2>
+    <input type="range" id="fatigue" min="0" max="10" step="1" value="0">
+    <div class="bornes"><span>En forme</span><span>Épuisée</span></div>
+  </div>
+
+  <div class="carte">
+    <h2>Humeur</h2>
+    <div class="humeurs" id="humeurs">
+      <button class="humeur" data-valeur="1" aria-label="Très mauvaise">😞</button>
+      <button class="humeur" data-valeur="2" aria-label="Mauvaise">😕</button>
+      <button class="humeur" data-valeur="3" aria-label="Neutre">😐</button>
+      <button class="humeur" data-valeur="4" aria-label="Bonne">🙂</button>
+      <button class="humeur" data-valeur="5" aria-label="Très bonne">😄</button>
+    </div>
+  </div>
+
+  <div class="carte">
+    <h2>Symptômes</h2>
+    <div class="symptomes" id="symptomes">
+      <button class="symptome">Crampes</button>
+      <button class="symptome">Douleurs lombaires</button>
+      <button class="symptome">Ballonnements</button>
+      <button class="symptome">Nausées</button>
+      <button class="symptome">Maux de tête</button>
+      <button class="symptome">Douleurs pendant les rapports</button>
+      <button class="symptome">Troubles digestifs</button>
+      <button class="symptome">Saignements hors règles</button>
+    </div>
+  </div>
+
+  <div class="carte">
+    <h2>Notes</h2>
+    <textarea id="notes" placeholder="Autre chose à noter aujourd'hui ?"></textarea>
+  </div>
+
+  <button class="btn-valider" id="btn-enregistrer">Enregistrer mon bilan</button>
+  <div class="confirmation" id="confirmation"></div>
+
+</div>
+
+<nav class="nav-bas">
+  <a href="cycle.html" aria-label="Cycle"><img src="assets/icons/lune.svg" alt=""></a>
+  <a href="repas.html" aria-label="Repas"><img src="assets/icons/poids.svg" alt=""></a>
+  <a href="rendez-vous.html" aria-label="Rendez-vous"><img src="assets/icons/calendrier.svg" alt=""></a>
+  <a href="analyses.html" aria-label="Analyses"><img src="assets/icons/stats.svg" alt=""></a>
+  <a href="bien-etre.html" aria-label="Conseils bien-être"><img src="assets/icons/feuille.svg" alt=""></a>
+  <a href="#" aria-label="Profil"><img src="assets/icons/profil.svg" alt=""></a>
+</nav>
+
+<!-- ============ FIREBASE ============ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDunVhY9SnccIn78SU0SWyFDrXDrbSM9dw",
+    authDomain: "mimiendo-73245.firebaseapp.com",
+    projectId: "mimiendo-73245",
+    storageBucket: "mimiendo-73245.firebasestorage.app",
+    messagingSenderId: "989010109768",
+    appId: "1:989010109768:web:8cf8cf916f04ac5feebf7d",
+    measurementId: "G-2ZF2VBZP3G"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  /* ==========================================================
+     MODÈLE : users/{uid}/journal/{YYYY-MM-DD}
+       bilan     : true
+       douleur   : 0–10
+       fatigue   : 0–10
+       humeur    : 1–5
+       symptomes : ["Crampes", ...]
+       notes     : "..."
+     (regles: true peut aussi exister, posé depuis l'écran Cycle)
+     ========================================================== */
+
+  let uid = null;
+  let dateCourante = new Date();
+  let humeurChoisie = null;
+
+  function cleDate(d){
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+
+  function afficherDate(){
+    const auj = cleDate(new Date()) === cleDate(dateCourante);
+    document.getElementById('date-affichee').textContent = auj
+      ? "Aujourd'hui"
+      : dateCourante.toLocaleDateString('fr-FR', { weekday:'short', day:'numeric', month:'long' });
+  }
+
+  /* ---------- interactions ---------- */
+  ['douleur','fatigue'].forEach(id => {
+    document.getElementById(id).addEventListener('input', e => {
+      document.getElementById('val-' + id).textContent = e.target.value;
+    });
+  });
+
+  document.querySelectorAll('.humeur').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.humeur').forEach(x => x.classList.remove('choisie'));
+      b.classList.add('choisie');
+      humeurChoisie = parseInt(b.dataset.valeur);
+    });
+  });
+
+  document.querySelectorAll('.symptome').forEach(b => {
+    b.addEventListener('click', () => b.classList.toggle('choisi'));
+  });
+
+  /* ---------- chargement du bilan du jour ---------- */
+  function reinitialiser(){
+    document.getElementById('douleur').value = 0;
+    document.getElementById('fatigue').value = 0;
+    document.getElementById('val-douleur').textContent = '0';
+    document.getElementById('val-fatigue').textContent = '0';
+    document.getElementById('notes').value = '';
+    humeurChoisie = null;
+    document.querySelectorAll('.humeur').forEach(x => x.classList.remove('choisie'));
+    document.querySelectorAll('.symptome').forEach(x => x.classList.remove('choisi'));
+    document.getElementById('confirmation').textContent = '';
+  }
+
+  async function charger(){
+    if (!uid) return;
+    reinitialiser();
+    const doc = await db.collection('users').doc(uid).collection('journal').doc(cleDate(dateCourante)).get();
+    if (!doc.exists) return;
+    const d = doc.data();
+    if (typeof d.douleur === 'number'){
+      document.getElementById('douleur').value = d.douleur;
+      document.getElementById('val-douleur').textContent = d.douleur;
+    }
+    if (typeof d.fatigue === 'number'){
+      document.getElementById('fatigue').value = d.fatigue;
+      document.getElementById('val-fatigue').textContent = d.fatigue;
+    }
+    if (d.humeur){
+      const b = document.querySelector(`.humeur[data-valeur="${d.humeur}"]`);
+      if (b){ b.classList.add('choisie'); humeurChoisie = d.humeur; }
+    }
+    (d.symptomes || []).forEach(s => {
+      document.querySelectorAll('.symptome').forEach(b => {
+        if (b.textContent === s) b.classList.add('choisi');
+      });
+    });
+    document.getElementById('notes').value = d.notes || '';
+  }
+
+  /* ---------- enregistrement ---------- */
+  document.getElementById('btn-enregistrer').addEventListener('click', async () => {
+    if (!uid) return;
+    const symptomes = [...document.querySelectorAll('.symptome.choisi')].map(b => b.textContent);
+    await db.collection('users').doc(uid).collection('journal').doc(cleDate(dateCourante)).set({
+      bilan: true,
+      douleur: parseInt(document.getElementById('douleur').value),
+      fatigue: parseInt(document.getElementById('fatigue').value),
+      humeur: humeurChoisie,
+      symptomes,
+      notes: document.getElementById('notes').value.trim(),
+      majLe: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    document.getElementById('confirmation').textContent = 'Bilan enregistré ✓';
+    setTimeout(() => document.getElementById('confirmation').textContent = '', 2500);
+  });
+
+  /* ---------- navigation de date ---------- */
+  document.getElementById('jour-prec').addEventListener('click', () => {
+    dateCourante.setDate(dateCourante.getDate() - 1);
+    afficherDate(); charger();
+  });
+  document.getElementById('jour-suiv').addEventListener('click', () => {
+    dateCourante.setDate(dateCourante.getDate() + 1);
+    afficherDate(); charger();
+  });
+
+  /* ---------- auth ---------- */
+  auth.onAuthStateChanged(user => {
+    if (!user) { window.location.href = 'index.html'; return; }
+    uid = user.uid;
+    charger();
+  });
+
+  afficherDate();
+</script>
+</body>
+</html>
