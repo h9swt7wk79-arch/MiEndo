@@ -6,8 +6,8 @@
 <title>MiEndo — Cycle</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googles.com/css2?family=Inter:wght@400;500;600;700&family=Katibeh&display=swap" rel="stylesheet">
-  <style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Katibeh&display=swap" rel="stylesheet">
+<style>
   :root{
     --noir:#000000;
     --blanc:#FFFFFF;
@@ -255,18 +255,18 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyDunVhY9SnccIn78SU0SWyFDrXDrbSM9dw",
-  authDomain: "mimiendo-73245.firebaseapp.com",
-  projectId: "mimiendo-73245",
-  storageBucket: "mimiendo-73245.firebasestorage.app",
-  messagingSenderId: "989010109768",
-  appId: "1:989010109768:web:8cf8cf916f04ac5feebf7d",
-  measurementId: "G-2ZF2VBZP3G"
-};
-
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
+  const firebaseConfig = {
+    apiKey: "AIzaSyDunVhY9SnccIn78SU0SWyFDrXDrbSM9dw",
+    authDomain: "mimiendo-73245.firebaseapp.com",
+    projectId: "mimiendo-73245",
+    storageBucket: "mimiendo-73245.firebasestorage.app",
+    messagingSenderId: "989010109768",
+    appId: "1:989010109768:web:8cf8cf916f04ac5feebf7d",
+    measurementId: "G-2ZF2VBZP3G"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
   /* ==========================================================
      MODÈLE DE DONNÉES FIRESTORE (adapte si le tien diffère)
