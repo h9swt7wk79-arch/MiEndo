@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MiEndo — Confidentialité</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Katibeh&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --noir:#000;--blanc:#FFF;
+    --gris-texte:#828282;--gris-bordure:#E6E6E6;
+    --rose:#FD8BAB;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:14px;color:var(--noir);
+    min-height:100dvh;
+    background:
+      linear-gradient(to bottom, rgba(255,255,255,.75), rgba(255,255,255,.9)),
+      url('assets/bg.jpg') center/cover no-repeat fixed;
+    padding:14px 0 40px;
+  }
+  .logo-haut{display:block;width:54px;margin:0 auto 4px;}
+  .entete{display:grid;grid-template-columns:36px 1fr 36px;align-items:center;padding:0 16px;margin-bottom:10px;}
+  .retour{background:none;border:none;cursor:pointer;font-size:22px;line-height:1;color:var(--noir);text-align:left;padding:4px;}
+  .titre-page{font-family:'Katibeh',serif;font-size:34px;font-weight:400;text-align:center;line-height:.9;margin-top:8px;}
+  .contenu{
+    max-width:560px;margin:0 auto;padding:0 20px;
+  }
+  .maj{color:var(--gris-texte);font-size:12px;text-align:center;margin-bottom:18px;}
+  h2{font-size:15px;font-weight:700;margin:20px 0 8px;}
+  p, li{font-size:13.5px;line-height:1.6;margin-bottom:8px;}
+  ul{padding-left:18px;}
+  li{margin-bottom:4px;}
+  a{color:var(--noir);font-weight:600;}
+  .encadre{
+    background:rgba(253,139,171,.15);
+    border-radius:12px;
+    padding:12px 14px;
+    margin:14px 0;
+    font-size:13px;line-height:1.55;
+  }
+</style>
+</head>
+<body>
+
+<img class="logo-haut" src="assets/logo.png" alt="MiEndo">
+<div class="entete">
+  <button class="retour" aria-label="Retour" onclick="history.back()">‹</button>
+  <h1 class="titre-page">Confidentialité &amp; mentions légales</h1>
+  <span></span>
+</div>
+
+<div class="contenu">
+  <p class="maj">Dernière mise à jour : juin 2026</p>
+
+  <div class="encadre">
+    En résumé : tes données restent les tiennes. MiEndo ne contient aucune publicité, aucun traqueur publicitaire, et ne vend ni ne partage tes données avec qui que ce soit. Tu peux les exporter ou les supprimer intégralement à tout moment depuis ton profil.
+  </div>
+
+  <h2>Qui édite MiEndo ?</h2>
+  <p>MiEndo est une application indépendante de suivi du cycle et des symptômes, pensée pour les personnes concernées par l'endométriose. Elle est éditée sous le nom <strong>MiEndo</strong>.</p>
+  <p>Contact : <a href="mailto:contact.miendo@gmail.com">contact.miendo@gmail.com</a></p>
+
+  <h2>Hébergement</h2>
+  <p>Le site est hébergé par Vercel Inc. (440 N Barranca Ave #4133, Covina, CA 91723, États-Unis). Les données des comptes et des suivis sont stockées via les services Firebase de Google (Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irlande), sur les infrastructures de Google Cloud.</p>
+
+  <h2>Quelles données sont collectées ?</h2>
+  <ul>
+    <li><strong>Données de compte</strong> : adresse e-mail (ou identifiant Google/Apple), âge, contraception et objectifs déclarés à l'inscription.</li>
+    <li><strong>Données de suivi saisies par toi</strong> : dates de règles et flux, douleurs et symptômes, bilans quotidiens, repas, rendez-vous, médicaments, notes libres.</li>
+  </ul>
+  <p>Ces données relèvent pour certaines des données de santé. Elles ne sont collectées que parce que tu les saisis volontairement, et uniquement pour te les restituer.</p>
+
+  <h2>À quoi servent-elles ?</h2>
+  <ul>
+    <li>T'afficher ton suivi, ton calendrier, tes analyses et tes rapports.</li>
+    <li>Rien d'autre : pas de publicité, pas de profilage, pas de revente, pas de partage avec des tiers.</li>
+  </ul>
+
+  <h2>Qui peut voir tes données ?</h2>
+  <ul>
+    <li><strong>Toi seule</strong>, via ton compte protégé par mot de passe ou connexion Google/Apple.</li>
+    <li><strong>Ton ou ta partenaire</strong>, uniquement si tu choisis de lui transmettre ton code partenaire — et seulement un résumé limité (phase, jour du cycle, prochaines règles estimées, douleur et bien-être du jour). Garde ce code pour les personnes de confiance ; tu peux nous contacter pour le réinitialiser.</li>
+  </ul>
+
+  <h2>Combien de temps sont-elles conservées ?</h2>
+  <p>Tant que ton compte existe. La suppression de ton compte efface définitivement l'ensemble de tes données (voir ci-dessous).</p>
+
+  <h2>Tes droits</h2>
+  <p>Conformément au RGPD, tu disposes d'un droit d'accès, de rectification, de portabilité et d'effacement de tes données :</p>
+  <ul>
+    <li><strong>Accès et portabilité</strong> : bouton « Exportation des données » de ton profil (rapport PDF et sauvegarde JSON complète).</li>
+    <li><strong>Rectification</strong> : toutes tes saisies sont modifiables dans l'application.</li>
+    <li><strong>Effacement</strong> : bouton « Supprimer mon compte » de ton profil, qui efface définitivement compte et données.</li>
+    <li>Pour toute autre demande : <a href="mailto:contact.miendo@gmail.com">contact.miendo@gmail.com</a>. Tu peux également saisir la CNIL (cnil.fr) si tu estimes que tes droits ne sont pas respectés.</li>
+  </ul>
+
+  <h2>Cookies</h2>
+  <p>MiEndo n'utilise aucun cookie publicitaire ni de mesure d'audience. Seuls des éléments techniques strictement nécessaires au fonctionnement (maintien de ta session de connexion via Firebase Authentication) sont utilisés.</p>
+
+  <h2>Limites d'usage</h2>
+  <p>MiEndo est un outil de suivi personnel. Les phases, prédictions et analyses affichées sont des estimations indicatives : elles ne constituent pas un avis médical et ne remplacent ni une consultation, ni un diagnostic, ni un traitement. En cas de symptôme inhabituel ou inquiétant, consulte un professionnel de santé.</p>
+
+  <h2>Évolution de cette politique</h2>
+  <p>Cette page pourra évoluer avec l'application. La date de dernière mise à jour figure en haut de page, et toute évolution substantielle sera signalée dans l'application.</p>
+</div>
+
+</body>
+</html>
