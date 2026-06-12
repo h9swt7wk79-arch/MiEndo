@@ -11,23 +11,6 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 // TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyDunVhY9SnccIn78SU0SWyFDrXDrbSM9dw",
-  authDomain: "mimiendo-73245.firebaseapp.com",
-  projectId: "mimiendo-73245",
-  storageBucket: "mimiendo-73245.firebasestorage.app",
-  messagingSenderId: "989010109768",
-  appId: "1:989010109768:web:8cf8cf916f04ac5feebf7d",
-  measurementId: "G-2ZF2VBZP3G"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
   <style>
   :root{
     --noir:#000000;
@@ -276,16 +259,18 @@ const analytics = getAnalytics(app);
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
-  // ⚠️ MÊME config que sur la page de connexion
-  const firebaseConfig = {
-    apiKey: "TA_CLE_API",
-    authDomain: "TON_PROJET.firebaseapp.com",
-    projectId: "TON_PROJET",
-    appId: "TON_APP_ID"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
+const firebaseConfig = {
+  apiKey: "AIzaSyDunVhY9SnccIn78SU0SWyFDrXDrbSM9dw",
+  authDomain: "mimiendo-73245.firebaseapp.com",
+  projectId: "mimiendo-73245",
+  storageBucket: "mimiendo-73245.firebasestorage.app",
+  messagingSenderId: "989010109768",
+  appId: "1:989010109768:web:8cf8cf916f04ac5feebf7d",
+  measurementId: "G-2ZF2VBZP3G"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 
   /* ==========================================================
      MODÈLE DE DONNÉES FIRESTORE (adapte si le tien diffère)
