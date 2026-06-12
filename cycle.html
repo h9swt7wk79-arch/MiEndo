@@ -246,7 +246,7 @@
   <a href="repas.html" aria-label="Repas"><img src="assets/icons/poids.svg" alt=""></a>
   <a href="rendez-vous.html" aria-label="Rendez-vous"><img src="assets/icons/calendrier.svg" alt=""></a>
   <a href="analyses.html" aria-label="Analyses"><img src="assets/icons/stats.svg" alt=""></a>
-  <a href="#" aria-label="Conseils bien-être"><img src="assets/icons/feuille.svg" alt=""></a>
+  <a href="bien-etre.html" aria-label="Conseils bien-être"><img src="assets/icons/feuille.svg" alt=""></a>
   <a href="#" aria-label="Profil"><img src="assets/icons/profil.svg" alt=""></a>
 </nav>
 
@@ -286,9 +286,11 @@
   let journal = {}; // { "2026-06-10": {bilan:true, douleur:6, regles:false}, ... }
 
   let moisAffiche = new Date(); // mois courant du calendrier
+  let uidCourant = null;
 
   auth.onAuthStateChanged(async (user) => {
     if (!user) { window.location.href = 'index.html'; return; }
+    uidCourant = user.uid;
     try {
       const doc = await db.collection('users').doc(user.uid).get();
       if (doc.exists && doc.data().lastPeriodStart) cycle = { ...cycle, ...doc.data() };
@@ -425,16 +427,48 @@
     moisAffiche.setMonth(moisAffiche.getMonth() + 1); afficherCalendrier();
   });
 
-  /* ---------- boutons d'action (pages à venir) ---------- */
-  document.getElementById('puce-regles').addEventListener('click', () => {
-    // → page de saisie des règles (à créer)
-    alert("Page 'Règles' à venir");
+  /* ---------- boutons d'action ---------- */
+  // RÈGLES : démarre les règles aujourd'hui → durée par défaut 5 jours
+  // (modifiable plus tard dans les paramètres via periodLength)
+  document.getElementById('puce-regles').addEventListener('click', async () => {
+    if (!uidCourant) return;
+    const duree = cycle.periodLength || 5;
+    if (!confirm(`Démarrer tes règles aujourd'hui ? (${duree} jours seront marqués, modifiable dans tes paramètres)`)) return;
+    const auj = new Date();
+    const cleAuj = cleDate(auj);
+    cycle.lastPeriodStart = cleAuj;
+    cycle.periodLength = duree;
+    cycle.cycleLength = cycle.cycleLength || 28;
+    await db.collection('users').doc(uidCourant).set({
+      lastPeriodStart: cleAuj,
+      periodLength: cycle.periodLength,
+      cycleLength: cycle.cycleLength
+    }, { merge: true });
+    // marque aussi les jours dans le journal (utile pour les analyses)
+    const lot = db.batch();
+    for (let i = 0; i < duree; i++){
+      const d = new Date(auj); d.setDate(d.getDate() + i);
+      lot.set(db.collection('users').doc(uidCourant).collection('journal').doc(cleDate(d)),
+              { regles: true }, { merge: true });
+      journal[cleDate(d)] = { ...(journal[cleDate(d)] || {}), regles: true };
+    }
+    await lot.commit();
+    toutAfficher();
   });
+
+  // BILAN : page de bilan quotidien
   document.getElementById('puce-bilan').addEventListener('click', () => {
-    alert("Page 'Bilan' à venir");
+    window.location.href = 'bilan.html';
   });
+
+  // ALERTE : SMS d'urgence pré-rempli
+  // (numéro et message personnalisables plus tard dans les paramètres :
+  //  champs telUrgence et messageUrgence du document users/{uid})
   document.getElementById('puce-alerte').addEventListener('click', () => {
-    alert("Page 'Douleur' à venir");
+    const texte = cycle.messageUrgence ||
+      "J'ai une crise de douleur en ce moment, peux-tu m'appeler ou venir m'aider ?";
+    const tel = cycle.telUrgence || '';
+    window.location.href = `sms:${tel}?&body=${encodeURIComponent(texte)}`;
   });
 
   function toutAfficher(){ afficherAnneau(); afficherCalendrier(); }
