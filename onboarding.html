@@ -93,6 +93,11 @@
     <button class="chip" data-v="comprendre_douleurs">Comprendre mes douleurs</button>
   </div>
 
+  <label style="display:flex;gap:10px;align-items:flex-start;margin-top:20px;font-size:12.5px;line-height:1.5;cursor:pointer;">
+    <input type="checkbox" id="consentement" style="margin-top:2px;accent-color:var(--rose);width:16px;height:16px;flex-shrink:0;">
+    <span>J'ai lu et j'accepte la <a href="confidentialite.html" target="_blank" style="color:var(--noir);font-weight:600;">politique de confidentialité</a>, et je comprends que mes données de suivi sont stockées pour mon usage personnel uniquement.</span>
+  </label>
+
   <button class="btn-valider" id="btn-valider">C'est parti !</button>
   <div class="message" id="message"></div>
 </main>
@@ -135,6 +140,10 @@
     const age = parseInt(document.getElementById('age').value) || null;
     if (!contraception){ document.getElementById('message').textContent = 'Indique ta contraception (ou "Aucune").'; return; }
     if (!objectifs.length){ document.getElementById('message').textContent = 'Choisis au moins un objectif.'; return; }
+    if (!document.getElementById('consentement').checked){
+      document.getElementById('message').textContent = 'Merci de lire et d\u2019accepter la politique de confidentialit\u00e9.';
+      return;
+    }
 
     /* Adaptation du suivi selon la contraception :
        - pilule continue sans règles → pas de prédiction de règles (suiviRegles:false)
@@ -157,6 +166,7 @@
       ...adaptation,
       periodLength: 5,
       onboardingFait: true,
+      consentementLe: firebase.firestore.FieldValue.serverTimestamp(),
       creeLe: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true });
 
