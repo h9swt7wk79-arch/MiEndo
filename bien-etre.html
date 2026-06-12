@@ -27,9 +27,10 @@
   .retour{background:none;border:none;cursor:pointer;font-size:22px;line-height:1;color:var(--noir);text-align:left;padding:4px;}
   .titre-page{font-family:'Katibeh',serif;font-size:38px;font-weight:400;text-align:center;line-height:.9;margin-top:8px;color:var(--noir);}
   .cartes{padding:0 12px;display:flex;flex-direction:column;gap:16px;}
+
   /* carte de phase en haut */
   .carte-phase{
-    background:rgba(255,255,255,.78);
+    background:rgba(255,255,255,.8);
     border:1.5px solid var(--rose);
     border-radius:14px;
     padding:16px;
@@ -41,7 +42,35 @@
     padding-top:6px;margin-bottom:6px;
   }
   .carte-phase .explication{font-size:13.5px;line-height:1.55;color:#474646;}
-  .carte-phase .conseils-titre{
+
+  /* cartes thématiques : blanches, toujours ouvertes */
+  .carte{
+    background:rgba(255,255,255,.8);
+    border-radius:14px;
+    padding:16px;
+  }
+  .carte-titre{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:4px;
+  }
+  .carte h2{font-size:19px;font-weight:700;color:var(--noir);}
+  .carte .emoji{font-size:19px;}
+  .sous-rubrique{
+    font-size:12px;font-weight:700;color:var(--rose);
+    text-transform:uppercase;letter-spacing:.05em;
+    margin:12px 0 5px;
+  }
+  .carte ul{list-style:none;}
+  .carte li{
+    font-size:13.5px;line-height:1.5;color:var(--noir);
+    padding:3px 0 3px 18px;
+    position:relative;
+  }
+  .carte li::before{
+    content:'•';color:var(--rose);font-weight:700;
+    position:absolute;left:4px;
+  }
+  .conseils-titre{
     font-size:12px;font-weight:700;color:var(--gris-texte);
     text-transform:uppercase;letter-spacing:.06em;
     margin:12px 0 6px;
@@ -49,36 +78,19 @@
   .carte-phase ul{list-style:none;}
   .carte-phase li{
     font-size:13.5px;line-height:1.5;
-    padding:4px 0 4px 20px;
-    position:relative;
+    padding:4px 0 4px 20px;position:relative;
   }
   .carte-phase li::before{
     content:'•';color:var(--rose);font-weight:700;
     position:absolute;left:6px;
   }
-  /* cartes thématiques : blanches, titres noirs */
-  .carte{
-    background:rgba(255,255,255,.78);
-    border:none;border-radius:14px;
-    padding:0;text-align:left;cursor:pointer;
-    font:inherit;overflow:hidden;width:100%;
-    color:var(--noir);
+  .alerte-rouge{
+    background:rgba(250,202,210,.5);
+    border-radius:10px;
+    padding:10px 12px;
+    margin-top:12px;
+    font-size:12.5px;line-height:1.5;
   }
-  .carte-tete{
-    display:flex;justify-content:space-between;align-items:flex-start;
-    padding:18px 16px;min-height:96px;
-  }
-  .carte h2{font-size:19px;font-weight:700;color:var(--noir);}
-  .carte .emoji{font-size:19px;}
-  .carte-contenu{
-    display:none;
-    background:rgba(255,255,255,.85);
-    border-top:1px solid #F2F2F2;
-    padding:14px 16px;
-  }
-  .carte.ouverte .carte-contenu{display:block;}
-  .carte-contenu p{font-size:13.5px;line-height:1.55;margin-bottom:9px;color:var(--noir);}
-  .carte-contenu p:last-child{margin-bottom:0;}
   .avertissement{color:var(--gris-texte);font-size:11.5px;text-align:center;padding:18px 24px 0;}
   .nav-bas{
     position:fixed;left:0;right:0;bottom:0;background:var(--blanc);
@@ -110,41 +122,102 @@
     <ul id="phase-conseils"></ul>
   </div>
 
-  <button class="carte" aria-expanded="false">
-    <div class="carte-tete"><h2>Sport</h2><span class="emoji">🏃‍♀️</span></div>
-    <div class="carte-contenu">
-      <p>Une activité douce et régulière (marche, natation, yoga, vélo tranquille) aide souvent à mieux vivre les douleurs : bouger un peu chaque jour compte plus qu'une grosse séance par semaine.</p>
-      <p>Adapte l'intensité à ta phase de cycle et à ta fatigue du jour — les jours difficiles, quelques étirements ou une courte marche suffisent.</p>
-      <p>Le maître-mot : écouter ton corps. Si une activité aggrave systématiquement tes douleurs, note-le dans ton bilan pour en parler à ton médecin.</p>
-    </div>
-  </button>
+  <!-- Gérer une crise -->
+  <div class="carte">
+    <div class="carte-titre"><h2>Gérer une crise</h2><span class="emoji">🔥</span></div>
+    <div class="sous-rubrique">Premiers réflexes</div>
+    <ul>
+      <li>La chaleur d'abord : bouillotte sur le ventre ou le bas du dos, ou bain chaud — c'est l'antalgique le plus accessible.</li>
+      <li>TENS si tu en as un : électrodes en bas du ventre ou du dos, séance de 20 à 30 minutes.</li>
+      <li>Position antalgique : allongée sur le côté en chien de fusil, ou sur le dos genoux ramenés vers la poitrine.</li>
+    </ul>
+    <div class="sous-rubrique">Pour traverser la vague</div>
+    <ul>
+      <li>Respiration lente : inspire 5 secondes, expire 5 secondes, pendant 5 minutes — ça module la perception de la douleur.</li>
+      <li>Prends ton traitement de crise tel que prescrit, sans attendre que la douleur soit installée : il est plus efficace pris tôt.</li>
+      <li>Note l'heure, l'intensité et ce qui a aidé dans ton Bilan : c'est précieux pour ajuster ton traitement avec ton médecin.</li>
+      <li>Besoin de soutien ? Le bouton ⚠️ de l'écran Cycle prépare un SMS pour ta personne de confiance.</li>
+    </ul>
+    <div class="alerte-rouge">🚨 Direction les urgences si : douleur brutale et inhabituelle, fièvre associée, malaise, vomissements incoercibles ou saignements très abondants (protection trempée en moins d'une heure).</div>
+  </div>
 
-  <button class="carte" aria-expanded="false">
-    <div class="carte-tete"><h2>Alimentation</h2><span class="emoji">🥗</span></div>
-    <div class="carte-contenu">
-      <p>Privilégie les fruits, légumes, légumineuses, céréales complètes et sources d'oméga-3 (poissons gras, noix, huile de colza), et pense à bien t'hydrater au fil de la journée.</p>
-      <p>Chacune réagit différemment : ton journal Repas croisé avec tes bilans de douleur (onglet Analyses) t'aidera à repérer <em>tes</em> propres aliments sensibles, plutôt que de suivre des interdits généraux.</p>
-      <p>Évite les régimes d'exclusion stricts sans accompagnement : un suivi par un·e diététicien·ne est préférable si tu envisages de gros changements.</p>
-    </div>
-  </button>
+  <!-- Sport -->
+  <div class="carte">
+    <div class="carte-titre"><h2>Sport</h2><span class="emoji">🏃‍♀️</span></div>
+    <div class="sous-rubrique">Au quotidien</div>
+    <ul>
+      <li>Une activité douce et régulière (marche, natation, yoga, vélo tranquille) aide à moduler la douleur et l'inflammation — la régularité compte plus que l'intensité.</li>
+      <li>La natation est souvent bien tolérée : l'eau porte le bassin et détend les muscles abdominaux.</li>
+      <li>Pense à la kiné spécialisée en pelvi-périnéologie : un plancher pelvien moins contracté, c'est souvent moins de douleurs.</li>
+    </ul>
+    <div class="sous-rubrique">Les jours douloureux</div>
+    <ul>
+      <li>Étirements doux : posture de l'enfant, genoux-poitrine, bascule du bassin — sans forcer.</li>
+      <li>Une marche courte et lente vaut mieux que rien, mais le repos est aussi un choix valable : aucune culpabilité.</li>
+    </ul>
+    <div class="sous-rubrique">À retenir</div>
+    <ul>
+      <li>Note dans ton Bilan les activités qui soulagent ou aggravent : ton corps est ton meilleur protocole d'étude.</li>
+    </ul>
+  </div>
 
-  <button class="carte" aria-expanded="false">
-    <div class="carte-tete"><h2>Sommeil</h2><span class="emoji">🌙</span></div>
-    <div class="carte-contenu">
-      <p>Le manque de sommeil amplifie la perception de la douleur. Vise des horaires réguliers de coucher et de lever, même le week-end.</p>
-      <p>Une routine apaisante aide : lumière tamisée le soir, écrans coupés 30 à 60 minutes avant le coucher, chambre fraîche et sombre.</p>
-      <p>Les jours de fortes douleurs, une sieste courte (20 minutes) peut aider sans dérégler la nuit suivante.</p>
-    </div>
-  </button>
+  <!-- Alimentation -->
+  <div class="carte">
+    <div class="carte-titre"><h2>Alimentation</h2><span class="emoji">🥗</span></div>
+    <div class="sous-rubrique">Tendance anti-inflammatoire</div>
+    <ul>
+      <li>Fais la part belle aux fruits, légumes, légumineuses, céréales complètes et oméga-3 (poissons gras, noix, huile de colza).</li>
+      <li>Hydrate-toi régulièrement tout au long de la journée ; les infusions (gingembre, camomille) comptent aussi.</li>
+      <li>Limite les produits ultra-transformés, la charcuterie et les excès de viande rouge, souvent pro-inflammatoires.</li>
+    </ul>
+    <div class="sous-rubrique">Spécial endo-belly</div>
+    <ul>
+      <li>Repas plus petits et plus fréquents, mangés lentement, plutôt que deux gros repas.</li>
+      <li>Repère tes sensibilités personnelles (souvent dans les FODMAPs : oignon, ail, blé, certains fruits) grâce au croisement journal Repas × Bilan dans Analyses.</li>
+      <li>Un ballonnement sévère et persistant n'est pas une fatalité : parles-en à ton gastro-entérologue ou à ton gynécologue.</li>
+    </ul>
+    <div class="sous-rubrique">Précautions</div>
+    <ul>
+      <li>Pas de régime d'exclusion strict (sans gluten, sans lactose…) sans accompagnement diététique : le risque de carence est réel et le bénéfice variable selon les personnes.</li>
+    </ul>
+  </div>
 
-  <button class="carte" aria-expanded="false">
-    <div class="carte-tete"><h2>À éviter</h2><span class="emoji">🚨</span></div>
-    <div class="carte-contenu">
-      <p>Le tabac et l'alcool ont tendance à entretenir l'inflammation et à perturber le sommeil ; les limiter est l'un des gestes les plus utiles.</p>
-      <p>Attention à l'excès de caféine, surtout en deuxième partie de journée, et aux longues périodes assise sans bouger.</p>
-      <p>Évite l'automédication prolongée (notamment les anti-inflammatoires sur de longues durées) sans avis médical, et ne banalise pas une douleur qui change ou s'intensifie : c'est un motif de consultation.</p>
-    </div>
-  </button>
+  <!-- Sommeil -->
+  <div class="carte">
+    <div class="carte-titre"><h2>Sommeil</h2><span class="emoji">🌙</span></div>
+    <div class="sous-rubrique">Pourquoi c'est crucial</div>
+    <ul>
+      <li>Douleur et sommeil forment un cercle vicieux : la dette de sommeil abaisse le seuil douloureux, et la douleur fragmente les nuits. Casser le cercle par le sommeil est une vraie stratégie antalgique.</li>
+    </ul>
+    <div class="sous-rubrique">Routine</div>
+    <ul>
+      <li>Horaires de coucher et de lever réguliers, même le week-end.</li>
+      <li>Écrans coupés 30 à 60 minutes avant le coucher, lumière tamisée, chambre fraîche et sombre.</li>
+      <li>La bouillotte au coucher est une excellente alliée : antalgique et soporifique.</li>
+    </ul>
+    <div class="sous-rubrique">Positions</div>
+    <ul>
+      <li>En chien de fusil avec un coussin entre les genoux, ou un coussin sous les genoux sur le dos, pour détendre le bassin.</li>
+      <li>Les jours de fortes douleurs, une sieste courte (20 minutes) aide sans dérégler la nuit.</li>
+    </ul>
+  </div>
+
+  <!-- À éviter -->
+  <div class="carte">
+    <div class="carte-titre"><h2>À éviter</h2><span class="emoji">🚨</span></div>
+    <div class="sous-rubrique">Ce qui entretient l'inflammation</div>
+    <ul>
+      <li>Le tabac et l'alcool — les limiter est l'un des gestes les plus rentables pour les douleurs comme pour le sommeil.</li>
+      <li>L'excès de caféine, surtout en deuxième partie de journée.</li>
+      <li>Les longues périodes assise sans bouger : lève-toi quelques minutes chaque heure.</li>
+    </ul>
+    <div class="sous-rubrique">Les pièges</div>
+    <ul>
+      <li>L'automédication prolongée aux anti-inflammatoires sans avis médical : efficaces en crise, ils ont des effets indésirables au long cours.</li>
+      <li>Minimiser une douleur qui change, s'intensifie ou résiste au traitement habituel : c'est un motif de consultation, pas une faiblesse.</li>
+      <li>Comparer ton endométriose à celle des autres : les formes, les douleurs et les traitements varient énormément d'une personne à l'autre.</li>
+    </ul>
+  </div>
 
 </div>
 
@@ -177,44 +250,44 @@
   const auth = firebase.auth();
   const db = firebase.firestore();
 
-  /* ---------- contenus par phase ---------- */
+  /* ---------- explication + conseils par phase, sous l'angle endo ---------- */
   const PHASES = {
     'Phase menstruelle': {
       emoji: '🩸',
-      explication: "Tes règles : l'endomètre s'évacue, et les prostaglandines libérées provoquent les contractions de l'utérus — d'où les crampes. L'énergie est souvent au plus bas, c'est normal.",
+      explication: "Tes règles : l'endomètre s'évacue et les prostaglandines provoquent les contractions utérines. Avec une endométriose, les lésions réagissent aussi aux hormones — c'est souvent la phase la plus douloureuse.",
       conseils: [
-        "La chaleur (bouillotte sur le ventre ou le bas du dos) reste l'une des aides les plus efficaces contre les crampes.",
-        "Hydrate-toi bien et privilégie les aliments riches en fer (légumineuses, viande, épinards) pour compenser les pertes.",
-        "Du mouvement très doux — marche lente, étirements — peut soulager ; aucune obligation de performance.",
-        "Accorde-toi du repos sans culpabiliser : note ta douleur dans le bilan pour suivre son évolution."
+        "Anticipe : bouillotte, traitement de crise à portée de main et agenda allégé si possible sur les premiers jours.",
+        "Privilégie les aliments riches en fer (légumineuses, viande, épinards) pour compenser les pertes, surtout si ton flux est abondant.",
+        "Mouvement très doux uniquement si tu en as envie ; le repos est tout aussi légitime.",
+        "Note chaque jour ta douleur dans le Bilan, même brièvement : la courbe de tes règles est l'info n°1 pour ton gynécologue."
       ]
     },
     'Phase folliculaire': {
       emoji: '🌱',
-      explication: "Les œstrogènes remontent progressivement : l'énergie, la concentration et l'humeur ont tendance à s'améliorer. C'est souvent la phase la plus confortable du cycle.",
+      explication: "Les œstrogènes remontent : énergie et humeur s'améliorent en général. C'est souvent la fenêtre la plus confortable du cycle, profites-en.",
       conseils: [
-        "Bon moment pour les activités physiques plus soutenues si tu en as envie : ton corps récupère généralement mieux.",
-        "Profites-en pour planifier ce qui demande de l'énergie (rendez-vous importants, projets).",
-        "Continue ton journal même quand tout va bien : les jours « sans symptôme » sont aussi des données précieuses pour tes analyses."
+        "Bon moment pour le sport un peu plus soutenu, les rendez-vous médicaux exigeants ou les projets énergivores.",
+        "Continue ton journal même quand tout va bien : les jours « sans » sont des données précieuses pour tes analyses.",
+        "C'est aussi le bon créneau pour les séances de kiné pelvienne, mieux tolérées hors période douloureuse."
       ]
     },
     'Phase ovulatoire': {
       emoji: '⭐',
-      explication: "Le pic d'œstrogènes et de LH déclenche l'ovulation. Certaines ressentent une douleur ovulatoire d'un côté du bassin, et la glaire devient transparente et filante (type « blanc d'œuf »).",
+      explication: "Pic d'œstrogènes et de LH : l'ovulation. Avec une endométriose, cette phase peut réveiller des douleurs pelviennes latéralisées (douleur ovulatoire), parfois marquées.",
       conseils: [
-        "Si tu ressens des douleurs pelviennes marquées à cette période, note leur côté et leur intensité dans ton bilan : c'est une information utile pour ton médecin.",
-        "C'est la fenêtre la plus fertile du cycle — à garder en tête selon ton objectif.",
-        "Hydratation et activité douce restent tes alliées."
+        "Si tu as des douleurs à cette période, note leur côté et leur intensité : leur récurrence au même moment du cycle est une info clinique utile.",
+        "Fenêtre la plus fertile du cycle — à garder en tête selon ton objectif.",
+        "Chaleur et antalgiques prescrits fonctionnent aussi sur les douleurs d'ovulation."
       ]
     },
     'Phase lutéale': {
       emoji: '🌾',
-      explication: "La progestérone domine. C'est la phase du syndrome prémenstruel : irritabilité, ballonnements, fringales, seins sensibles et fatigue peuvent apparaître, surtout dans les derniers jours.",
+      explication: "La progestérone domine. Syndrome prémenstruel possible (irritabilité, ballonnements, fringales, seins tendus) — et chez beaucoup de femmes avec endométriose, l'endo-belly et la fatigue s'accentuent en fin de phase.",
       conseils: [
-        "Privilégie les aliments riches en magnésium (oléagineux, chocolat noir, légumes verts) et réduis caféine et alcool, qui accentuent souvent les symptômes.",
-        "Garde des horaires de sommeil réguliers : la qualité du sommeil se fragilise dans cette phase.",
-        "Les fringales sucrées sont fréquentes et normales — note-les dans ton bilan plutôt que de culpabiliser.",
-        "Sois douce avec toi-même : les sautes d'humeur ont une explication hormonale, pas un défaut de caractère."
+        "Aliments riches en magnésium (oléagineux, chocolat noir, légumes verts) et modération sur caféine et alcool.",
+        "Anticipe la semaine pré-règles : sommeil renforcé, bouillotte prête, charge mentale allégée si possible.",
+        "Fringales sucrées fréquentes et normales : note-les plutôt que de culpabiliser.",
+        "Les sautes d'humeur ont une explication hormonale — sois aussi indulgente avec toi que tu le serais avec une amie."
       ]
     }
   };
@@ -231,11 +304,10 @@
     const expEl = document.getElementById('phase-explication');
     const consEl = document.getElementById('phase-conseils');
 
-    // contraception continue : pas de cycle hormonal à expliquer
     if (profil.suiviRegles === false){
       nomEl.textContent = 'Ton suivi 🌸';
-      expEl.textContent = "Avec ta contraception en continu, ton cycle hormonal est mis au repos : pas de phases à proprement parler. Les conseils généraux ci-dessous restent valables, et ton bilan quotidien garde tout son intérêt pour suivre douleurs et symptômes.";
-      consEl.innerHTML = '<li>Remplis ton bilan régulièrement : c\u2019est lui qui révèle tes tendances, indépendamment du cycle.</li><li>Des saignements inhabituels sous contraception continue méritent d\u2019être notés et signalés à ton médecin.</li>';
+      expEl.textContent = "Avec ta contraception en continu, ton cycle hormonal est mis au repos — c'est d'ailleurs souvent un objectif du traitement de l'endométriose. Les conseils ci-dessous restent valables, et ton bilan quotidien garde tout son intérêt.";
+      consEl.innerHTML = '<li>Remplis ton bilan régulièrement : c\u2019est lui qui révèle tes tendances, indépendamment du cycle.</li><li>Des saignements ou des douleurs qui réapparaissent sous traitement continu sont à noter et à signaler à ton médecin.</li>';
       return;
     }
 
@@ -265,14 +337,6 @@
       const li = document.createElement('li');
       li.textContent = c;
       consEl.appendChild(li);
-    });
-  });
-
-  // cartes dépliables
-  document.querySelectorAll('.carte').forEach(carte => {
-    carte.addEventListener('click', () => {
-      const ouverte = carte.classList.toggle('ouverte');
-      carte.setAttribute('aria-expanded', ouverte);
     });
   });
 </script>
