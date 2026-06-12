@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MiEndo — Cycle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Katibeh&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --noir:#000000;
+    --blanc:#FFFFFF;
+    --gris-texte:#828282;
+    --gris-bordure:#E6E6E6;
+    --gris-clair:#E0E0E0;
+    --rose:#F285AB;          /* anneau */
+    --rose-fonce:#E05C8F;    /* marqueur de progression */
+    --rose-pale:#FCE4EC;     /* fond jours de règles + jour actuel */
+    --rose-texte:#E0447C;    /* chiffre du jour actuel */
+    --bleu-pale:#DCEAFB;     /* fond jours d'ovulation */
+    --radius:10px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:14px;
+    color:var(--noir);
+    background:#FFF;
+    min-height:100dvh;
+    padding-bottom:88px; /* place pour la nav fixe */
+  }
+  /* ---- fond dégradé adouci sur la partie haute ---- */
+  .haut{
+    background:
+      linear-gradient(to bottom, rgba(255,255,255,.55) 0%, rgba(255,255,255,.75) 70%, #FFF 100%),
+      url('assets/bg.jpg') center top/cover no-repeat;
+    padding:14px 16px 26px;
+  }
+  .logo-haut{
+    display:block;
+    width:54px;
+    margin:0 auto 4px;
+  }
+  .entete{
+    display:grid;
+    grid-template-columns:36px 1fr 36px;
+    align-items:center;
+    margin-bottom:10px;
+  }
+  .retour{
+    background:none;border:none;cursor:pointer;
+    font-size:22px;line-height:1;color:var(--noir);
+    text-align:left;padding:4px;
+  }
+  .titre-page{
+    font-family:'Katibeh',serif;
+    font-size:38px;
+    font-weight:400;
+    text-align:center;
+    line-height:.9;
+    margin-top:8px; /* Katibeh a beaucoup d'espace au-dessus, on compense */
+  }
+  /* ---- puces Règles / Bilan / alerte ---- */
+  .puces{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+    margin-bottom:22px;
+  }
+  .puce{
+    display:flex;align-items:center;gap:8px;
+    background:var(--blanc);
+    border:1px solid var(--gris-bordure);
+    border-radius:12px;
+    padding:9px 16px;
+    font:inherit;font-weight:600;font-size:16px;
+    cursor:pointer;
+    box-shadow:0 1px 3px rgba(0,0,0,.05);
+  }
+  .puce img{width:21px;height:21px;}
+  .puce-icone{padding:9px 10px;}
+  /* ---- anneau de cycle ---- */
+  .anneau-zone{
+    position:relative;
+    width:min(320px, 78vw);
+    margin:0 auto;
+  }
+  .anneau-zone svg{display:block;width:100%;height:auto;}
+  .anneau-centre{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:0 14%;
+  }
+  .phase{
+    font-family:'Katibeh',serif;
+    font-size:44px;
+    line-height:.82;
+    padding-top:14px;
+  }
+  .sous-phase{
+    color:var(--gris-texte);
+    font-size:13px;
+    margin-top:10px;
+  }
+  /* ---- calendrier ---- */
+  .calendrier{
+    background:var(--blanc);
+    border-radius:18px 18px 0 0;
+    box-shadow:0 -4px 16px rgba(0,0,0,.05);
+    padding:14px 12px 8px;
+    margin-top:18px;
+  }
+  .cal-entete{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 6px 8px;
+  }
+  .cal-mois{font-weight:600;font-size:15px;text-transform:capitalize;}
+  .cal-nav{
+    background:none;border:none;cursor:pointer;
+    font-size:18px;color:var(--gris-texte);padding:4px 10px;
+  }
+  table.cal{
+    width:100%;
+    border-collapse:collapse;
+    table-layout:fixed;
+  }
+  .cal th{
+    font-weight:600;font-size:13px;
+    padding:8px 0;
+    border-bottom:1px solid var(--gris-bordure);
+  }
+  .cal td{
+    height:54px;
+    text-align:center;
+    vertical-align:top;
+    border-bottom:1px solid #F2F2F2;
+    font-size:14px;
+    padding-top:8px;
+    position:relative;
+  }
+  .cal td.hors-mois{color:#C4C4C4;}
+  .jour-num{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:28px;height:28px;border-radius:8px;
+  }
+  td.regles .jour-num{background:var(--rose-pale);}
+  td.ovulation .jour-num{background:var(--bleu-pale);}
+  td.aujourdhui .jour-num{
+    background:var(--rose-pale);
+    color:var(--rose-texte);
+    font-weight:600;
+  }
+  .marqueurs{
+    display:block;
+    font-size:10px;
+    line-height:1;
+    margin-top:2px;
+    letter-spacing:1px;
+  }
+  /* ---- barre de navigation ---- */
+  .nav-bas{
+    position:fixed;
+    left:0;right:0;bottom:0;
+    background:var(--blanc);
+    border-top:1px solid var(--gris-bordure);
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+    padding:10px 8px calc(10px + env(safe-area-inset-bottom));
+    z-index:10;
+  }
+  .nav-bas a{
+    display:flex;align-items:center;justify-content:center;
+    width:44px;height:40px;
+    border-radius:10px;
+  }
+  .nav-bas a:focus-visible{outline:2px solid var(--noir);}
+  .nav-bas img{width:30px;height:30px;}
+</style>
+</head>
+<body>
+
+<div class="haut">
+  <img class="logo-haut" src="assets/logo.png" alt="MiEndo">
+
+  <div class="entete">
+    <button class="retour" aria-label="Retour" onclick="history.back()">‹</button>
+    <h1 class="titre-page">Cycle</h1>
+    <span></span>
+  </div>
+
+  <div class="puces">
+    <button class="puce" id="puce-regles"><img src="assets/icons/goutte.svg" alt="">Règles</button>
+    <button class="puce" id="puce-bilan"><img src="assets/icons/bilan.svg" alt="">Bilan</button>
+    <button class="puce puce-icone" id="puce-alerte" aria-label="Signaler une douleur"><img src="assets/icons/alerte.svg" alt=""></button>
+  </div>
+
+  <!-- Anneau de progression du cycle -->
+  <div class="anneau-zone">
+    <svg viewBox="0 0 200 200" aria-hidden="true">
+      <!-- piste (cycle complet) -->
+      <circle cx="100" cy="100" r="86" fill="none" stroke="var(--rose-pale)" stroke-width="14"/>
+      <!-- progression (rotation -90° pour démarrer en haut) -->
+      <circle id="arc-progression" cx="100" cy="100" r="86" fill="none"
+              stroke="var(--rose)" stroke-width="14" stroke-linecap="round"
+              transform="rotate(-90 100 100)"
+              stroke-dasharray="0 540.35"/>
+      <!-- marqueur du jour actuel (donut) -->
+      <g id="marqueur">
+        <circle id="marqueur-ext" cx="100" cy="14" r="13" fill="var(--rose-fonce)"/>
+        <circle id="marqueur-int" cx="100" cy="14" r="6" fill="var(--blanc)"/>
+      </g>
+    </svg>
+    <div class="anneau-centre">
+      <div class="phase" id="texte-phase">Phase —</div>
+      <div class="sous-phase" id="texte-sous-phase">Chargement…</div>
+    </div>
+  </div>
+</div>
+
+<!-- Calendrier -->
+<section class="calendrier">
+  <div class="cal-entete">
+    <button class="cal-nav" id="mois-prec" aria-label="Mois précédent">‹</button>
+    <span class="cal-mois" id="cal-mois"></span>
+    <button class="cal-nav" id="mois-suiv" aria-label="Mois suivant">›</button>
+  </div>
+  <table class="cal" id="cal-table">
+    <thead>
+      <tr><th>Su</th><th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th><th>Sa</th></tr>
+    </thead>
+    <tbody id="cal-corps"></tbody>
+  </table>
+</section>
+
+<!-- Navigation -->
+<nav class="nav-bas">
+  <a href="#" aria-label="Bien-être"><img src="assets/icons/lune.svg" alt=""></a>
+  <a href="#" aria-label="Poids"><img src="assets/icons/poids.svg" alt=""></a>
+  <a href="cycle.html" aria-label="Cycle" aria-current="page"><img src="assets/icons/calendrier.svg" alt=""></a>
+  <a href="#" aria-label="Statistiques"><img src="assets/icons/stats.svg" alt=""></a>
+  <a href="#" aria-label="Santé"><img src="assets/icons/feuille.svg" alt=""></a>
+  <a href="#" aria-label="Profil"><img src="assets/icons/profil.svg" alt=""></a>
+</nav>
+
+<!-- ============ FIREBASE ============ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  // ⚠️ MÊME config que sur la page de connexion
+  const firebaseConfig = {
+    apiKey: "TA_CLE_API",
+    authDomain: "TON_PROJET.firebaseapp.com",
+    projectId: "TON_PROJET",
+    appId: "TON_APP_ID"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  /* ==========================================================
+     MODÈLE DE DONNÉES FIRESTORE (adapte si le tien diffère)
+     users/{uid} :
+       lastPeriodStart : "2026-06-02"   (1er jour des dernières règles)
+       cycleLength     : 28             (durée moyenne du cycle)
+       periodLength    : 5              (durée des règles)
+     users/{uid}/journal/{YYYY-MM-DD} :
+       regles  : true                   (saignements ce jour)
+       bilan   : true                   (bilan quotidien rempli)
+       douleur : 0 à 10                 (EVA douleur)
+     ========================================================== */
+
+  // Données de démonstration tant que Firestore est vide,
+  // pour pouvoir vérifier le visuel.
+  let cycle = { lastPeriodStart: "2026-06-02", cycleLength: 28, periodLength: 5 };
+  let journal = {}; // { "2026-06-10": {bilan:true, douleur:6, regles:false}, ... }
+
+  let moisAffiche = new Date(); // mois courant du calendrier
+
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) { window.location.href = 'index.html'; return; }
+    try {
+      const doc = await db.collection('users').doc(user.uid).get();
+      if (doc.exists && doc.data().lastPeriodStart) cycle = { ...cycle, ...doc.data() };
+
+      const snap = await db.collection('users').doc(user.uid).collection('journal').get();
+      snap.forEach(d => journal[d.id] = d.data());
+    } catch (e) {
+      console.warn('Lecture Firestore impossible, affichage des données de démo.', e);
+    }
+    toutAfficher();
+  });
+
+  /* ---------- calculs de cycle ---------- */
+  function joursEntre(a, b){ return Math.round((b - a) / 86400000); }
+  function aMinuit(d){ const x = new Date(d); x.setHours(0,0,0,0); return x; }
+
+  function etatCycle(){
+    const debut = aMinuit(new Date(cycle.lastPeriodStart));
+    const auj = aMinuit(new Date());
+    const L = cycle.cycleLength;
+    // jour du cycle (1-indexé), modulo si plusieurs cycles écoulés
+    const ecart = joursEntre(debut, auj);
+    const jour = ((ecart % L) + L) % L + 1;
+    const ovulation = L - 14; // J ovulation estimé (phase lutéale ~14 j)
+    let phase;
+    if (jour <= cycle.periodLength)        phase = "Phase menstruelle";
+    else if (jour < ovulation - 1)         phase = "Phase folliculaire";
+    else if (jour <= ovulation + 1)        phase = "Phase ovulatoire";
+    else                                   phase = "Phase lutéale";
+    const resteAvantRegles = L - jour + 1;
+    return { jour, L, phase, resteAvantRegles, ovulation };
+  }
+
+  /* ---------- anneau ---------- */
+  function afficherAnneau(){
+    const { jour, L, phase, resteAvantRegles } = etatCycle();
+    const r = 86, circ = 2 * Math.PI * r; // ≈ 540.35
+    const fraction = jour / L;
+    document.getElementById('arc-progression')
+      .setAttribute('stroke-dasharray', `${circ * fraction} ${circ}`);
+    // position du marqueur (angle depuis le haut, sens horaire)
+    const angle = fraction * 2 * Math.PI - Math.PI / 2;
+    const cx = 100 + r * Math.cos(angle);
+    const cy = 100 + r * Math.sin(angle);
+    document.getElementById('marqueur-ext').setAttribute('cx', cx);
+    document.getElementById('marqueur-ext').setAttribute('cy', cy);
+    document.getElementById('marqueur-int').setAttribute('cx', cx);
+    document.getElementById('marqueur-int').setAttribute('cy', cy);
+
+    const emojis = {
+      "Phase menstruelle": "🩸",
+      "Phase folliculaire": "🌱",
+      "Phase ovulatoire": "⭐",
+      "Phase lutéale": "🌙"
+    };
+    document.getElementById('texte-phase').innerHTML =
+      phase.replace(' ', '<br>') + ' ' + emojis[phase];
+    document.getElementById('texte-sous-phase').textContent =
+      resteAvantRegles > 1
+        ? `Règles dans ${resteAvantRegles} jours environ`
+        : `Règles imminentes`;
+  }
+
+  /* ---------- calendrier ---------- */
+  function cleDate(d){
+    return d.getFullYear() + '-' +
+      String(d.getMonth()+1).padStart(2,'0') + '-' +
+      String(d.getDate()).padStart(2,'0');
+  }
+
+  function estJourRegles(d){
+    // jours loggés OU prédits depuis lastPeriodStart (récurrence du cycle)
+    const j = journal[cleDate(d)];
+    if (j && j.regles) return true;
+    const debut = aMinuit(new Date(cycle.lastPeriodStart));
+    const ecart = joursEntre(debut, aMinuit(d));
+    const pos = ((ecart % cycle.cycleLength) + cycle.cycleLength) % cycle.cycleLength;
+    return ecart >= 0 && pos < cycle.periodLength;
+  }
+
+  function estJourOvulation(d){
+    const debut = aMinuit(new Date(cycle.lastPeriodStart));
+    const ecart = joursEntre(debut, aMinuit(d));
+    const pos = ((ecart % cycle.cycleLength) + cycle.cycleLength) % cycle.cycleLength + 1;
+    const ov = cycle.cycleLength - 14;
+    return ecart >= 0 && pos >= ov - 1 && pos <= ov + 1;
+  }
+
+  function afficherCalendrier(){
+    const annee = moisAffiche.getFullYear();
+    const mois = moisAffiche.getMonth();
+    document.getElementById('cal-mois').textContent =
+      moisAffiche.toLocaleDateString('fr-FR', { month:'long', year:'numeric' });
+
+    const premierJour = new Date(annee, mois, 1);
+    const decalage = premierJour.getDay(); // 0 = dimanche (la maquette commence dimanche)
+    const corps = document.getElementById('cal-corps');
+    corps.innerHTML = '';
+    const auj = aMinuit(new Date());
+
+    let d = new Date(annee, mois, 1 - decalage);
+    for (let semaine = 0; semaine < 6; semaine++){
+      // ne pas afficher une 6e ligne entièrement hors mois
+      if (semaine === 5 && d.getMonth() !== mois) break;
+      const tr = document.createElement('tr');
+      for (let i = 0; i < 7; i++){
+        const td = document.createElement('td');
+        const horsMois = d.getMonth() !== mois;
+        if (horsMois) td.classList.add('hors-mois');
+        if (!horsMois){
+          if (aMinuit(d).getTime() === auj.getTime()) td.classList.add('aujourdhui');
+          else if (estJourRegles(d)) td.classList.add('regles');
+          else if (estJourOvulation(d)) td.classList.add('ovulation');
+        }
+        let marqueurs = '';
+        const j = journal[cleDate(d)];
+        if (j && !horsMois){
+          if (j.bilan) marqueurs += '✔️';
+          if (typeof j.douleur === 'number' && j.douleur > 4) marqueurs += '💔';
+        }
+        td.innerHTML = `<span class="jour-num">${d.getDate()}</span>` +
+                       (marqueurs ? `<span class="marqueurs">${marqueurs}</span>` : '');
+        tr.appendChild(td);
+        d.setDate(d.getDate() + 1);
+      }
+      corps.appendChild(tr);
+    }
+  }
+
+  document.getElementById('mois-prec').addEventListener('click', () => {
+    moisAffiche.setMonth(moisAffiche.getMonth() - 1); afficherCalendrier();
+  });
+  document.getElementById('mois-suiv').addEventListener('click', () => {
+    moisAffiche.setMonth(moisAffiche.getMonth() + 1); afficherCalendrier();
+  });
+
+  /* ---------- boutons d'action (pages à venir) ---------- */
+  document.getElementById('puce-regles').addEventListener('click', () => {
+    // → page de saisie des règles (à créer)
+    alert("Page 'Règles' à venir");
+  });
+  document.getElementById('puce-bilan').addEventListener('click', () => {
+    alert("Page 'Bilan' à venir");
+  });
+  document.getElementById('puce-alerte').addEventListener('click', () => {
+    alert("Page 'Douleur' à venir");
+  });
+
+  function toutAfficher(){ afficherAnneau(); afficherCalendrier(); }
+  // premier rendu immédiat avec les données de démo (avant la réponse Firestore)
+  toutAfficher();
+</script>
+</body>
+</html>
