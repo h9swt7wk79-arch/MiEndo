@@ -247,7 +247,7 @@
   <a href="rendez-vous.html" aria-label="Rendez-vous"><img src="assets/icons/calendrier.svg" alt=""></a>
   <a href="analyses.html" aria-label="Analyses"><img src="assets/icons/stats.svg" alt=""></a>
   <a href="bien-etre.html" aria-label="Conseils bien-être"><img src="assets/icons/feuille.svg" alt=""></a>
-  <a href="#" aria-label="Profil"><img src="assets/icons/profil.svg" alt=""></a>
+  <a href="profil.html" aria-label="Profil"><img src="assets/icons/profil.svg" alt=""></a>
 </nav>
 
 <!-- ============ FIREBASE ============ -->
@@ -289,7 +289,7 @@
   let uidCourant = null;
 
   auth.onAuthStateChanged(async (user) => {
-    if (!user) { window.location.href = 'index.html'; return; }
+    if (!user || user.isAnonymous) { window.location.href = 'index.html'; return; }
     uidCourant = user.uid;
     try {
       const doc = await db.collection('users').doc(user.uid).get();
@@ -453,6 +453,20 @@
       journal[cleDate(d)] = { ...(journal[cleDate(d)] || {}), regles: true };
     }
     await lot.commit();
+
+    // mise à jour de l'espace partenaire si un code existe
+    try {
+      if (cycle.codePartenaire){
+        const e = etatCycle();
+        const proch = new Date(); proch.setDate(proch.getDate() + cycle.cycleLength);
+        await db.collection('partage').doc(cycle.codePartenaire).set({
+          phase: e.phase,
+          prochainesRegles: cleDate(proch),
+          majLe: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      }
+    } catch(err){ console.warn('Partage non mis à jour', err); }
+
     toutAfficher();
   });
 
