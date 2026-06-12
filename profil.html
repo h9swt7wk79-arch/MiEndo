@@ -127,7 +127,20 @@
     <div class="confirmation" id="confirmation-import"></div>
   </div>
 
+  <div class="carte" style="text-align:center;">
+    <h2 style="margin-bottom:6px;">Soutenir MiEndo</h2>
+    <p style="font-size:12.5px;color:var(--gris-texte);margin-bottom:10px;">MiEndo est gratuite, sans pub et sans revente de données. Si elle t'aide, tu peux soutenir son développement 💗</p>
+    <a href="https://ko-fi.com/miendo" target="_blank" rel="noopener"
+       style="display:inline-block;background:var(--rose);color:#FFF;font-weight:600;
+              padding:10px 22px;border-radius:999px;text-decoration:none;">
+      ☕ Offrir un café
+    </a>
+  </div>
+
   <button class="btn-deconnexion" id="btn-deconnexion">Se déconnecter</button>
+
+  <button class="btn-discret" id="btn-supprimer" style="color:#B3261E;">Supprimer mon compte et toutes mes données</button>
+  <div class="confirmation" id="confirmation-suppression" style="color:#B3261E;"></div>
 
 </div>
 
@@ -464,6 +477,50 @@
         ? 'Format non reconnu : ni sauvegarde MiEndo, ni export Flo avec cycles.'
         : 'Fichier illisible (JSON invalide ou incomplet).';
       confirmation.style.color = '#B3261E';
+    }
+  });
+
+  /* ---------- suppression de compte (droit à l'effacement) ---------- */
+  async function supprimerCollection(nom){
+    // suppression par lots de toutes les entrées d'une sous-collection
+    const ref = db.collection('users').doc(uid).collection(nom);
+    let snap = await ref.limit(400).get();
+    while (!snap.empty){
+      const lot = db.batch();
+      snap.docs.forEach(d => lot.delete(d.ref));
+      await lot.commit();
+      snap = await ref.limit(400).get();
+    }
+  }
+
+  document.getElementById('btn-supprimer').addEventListener('click', async () => {
+    if (!uid) return;
+    const msg = document.getElementById('confirmation-suppression');
+    const saisie = prompt(
+      "Cette action est définitive : ton compte et TOUTES tes données (journal, repas, rendez-vous, partage) seront effacés.\n\nPour confirmer, écris SUPPRIMER :");
+    if (saisie === null) return;
+    if (saisie.trim().toUpperCase() !== 'SUPPRIMER'){
+      msg.textContent = 'Suppression annulée (confirmation incorrecte).';
+      setTimeout(() => msg.textContent = '', 3000);
+      return;
+    }
+    msg.textContent = 'Suppression en cours…';
+    try {
+      await supprimerCollection('journal');
+      await supprimerCollection('aliments');
+      await supprimerCollection('rendezvous');
+      if (profil.codePartenaire){
+        await db.collection('partage').doc(profil.codePartenaire).delete();
+      }
+      await db.collection('users').doc(uid).delete();
+      await auth.currentUser.delete(); // déclenche la redirection via onAuthStateChanged
+    } catch (err){
+      console.error(err);
+      if (err.code === 'auth/requires-recent-login'){
+        msg.textContent = 'Par sécurité, déconnecte-toi, reconnecte-toi, puis relance la suppression : tes données sont déjà effacées, il ne reste que le compte.';
+      } else {
+        msg.textContent = 'Erreur pendant la suppression. Réessaie ou écris-nous : contact.miendo@gmail.com';
+      }
     }
   });
 
