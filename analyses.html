@@ -134,6 +134,24 @@
   </div>
 
   <div class="carte">
+    <h2>Impact sur ton quotidien</h2>
+    <div class="note">30 derniers jours</div>
+    <div class="resume" style="margin-bottom:0;">
+      <div class="bloc" style="box-shadow:none;background:#FAFAFA;"><span class="valeur" id="imp-normales">–</span><div class="libelle">normales</div></div>
+      <div class="bloc" style="box-shadow:none;background:#FAFAFA;"><span class="valeur" id="imp-amenagees">–</span><div class="libelle">aménagées</div></div>
+      <div class="bloc" style="box-shadow:none;background:#FAFAFA;"><span class="valeur" id="imp-annulees">–</span><div class="libelle">annulées</div></div>
+    </div>
+    <div class="vide-carte" id="vide-impact" hidden>Renseigne « Impact sur ta journée » dans ton Bilan pour suivre les journées perturbées — une donnée précieuse pour les dossiers ALD ou les aménagements d'études.</div>
+  </div>
+
+  <div class="carte">
+    <h2>Tes traitements</h2>
+    <div class="note">Douleur moyenne les jours avec / sans chaque médicament</div>
+    <ul class="liste-aliments" id="liste-traitements"></ul>
+    <div class="vide-carte" id="vide-traitements" hidden>Coche tes médicaments dans le Bilan pour mesurer leur effet sur ta douleur.</div>
+  </div>
+
+  <div class="carte">
     <h2>Aliments des jours douloureux</h2>
     <div class="note">Les plus fréquents quand la douleur dépasse 4</div>
     <ul class="liste-aliments" id="liste-douleur"></ul>
@@ -215,6 +233,8 @@
     afficherResume();
     afficherDouleurCycle();
     afficherDouleurParPhase();
+    afficherImpact();
+    afficherTraitements();
     afficherAlimentsDouleur();
   });
 
@@ -342,6 +362,66 @@
       li.append(spanNom, spanN);
       ul.appendChild(li);
     });
+  }
+
+  /* ---------- impact quotidien (30 j) ---------- */
+  function afficherImpact(){
+    const il30 = aMinuit(new Date()); il30.setDate(il30.getDate() - 30);
+    const entrees = Object.entries(journal).filter(([date, v]) => new Date(date) >= il30 && v.impact);
+    if (!entrees.length){
+      document.getElementById('vide-impact').hidden = false;
+      return;
+    }
+    const compte = { 'Journée normale':0, 'Journée aménagée':0, 'Journée annulée':0 };
+    entrees.forEach(([_, v]) => { if (compte[v.impact] !== undefined) compte[v.impact]++; });
+    document.getElementById('imp-normales').textContent = compte['Journée normale'];
+    document.getElementById('imp-amenagees').textContent = compte['Journée aménagée'];
+    document.getElementById('imp-annulees').textContent = compte['Journée annulée'];
+  }
+
+  /* ---------- efficacité des traitements ---------- */
+  function afficherTraitements(){
+    // douleur moyenne des jours AVEC chaque médicament vs jours SANS aucun
+    const jours = Object.values(journal).filter(v => typeof v.douleur === 'number');
+    const parMed = {};
+    const sansMed = [];
+    jours.forEach(v => {
+      const meds = v.medicaments || [];
+      if (!meds.length) sansMed.push(v.douleur);
+      meds.forEach(m => { (parMed[m] = parMed[m] || []).push(v.douleur); });
+    });
+    const lignes = Object.entries(parMed)
+      .filter(([_, l]) => l.length >= 2)
+      .sort((a,b) => b[1].length - a[1].length)
+      .slice(0, 5);
+    if (!lignes.length){
+      document.getElementById('vide-traitements').hidden = false;
+      return;
+    }
+    const moySans = sansMed.length ? (sansMed.reduce((a,b)=>a+b,0)/sansMed.length) : null;
+    const ul = document.getElementById('liste-traitements');
+    lignes.forEach(([med, l]) => {
+      const moy = l.reduce((a,b)=>a+b,0)/l.length;
+      const li = document.createElement('li');
+      const nom = document.createElement('span');
+      nom.textContent = med;
+      const val = document.createElement('span');
+      val.className = 'compte';
+      val.textContent = moy.toFixed(1) + '/10 (' + l.length + ' j)';
+      li.append(nom, val);
+      ul.appendChild(li);
+    });
+    if (moySans !== null){
+      const li = document.createElement('li');
+      const nom = document.createElement('span');
+      nom.textContent = 'Jours sans médicament';
+      nom.style.color = 'var(--gris-texte)';
+      const val = document.createElement('span');
+      val.className = 'compte';
+      val.textContent = moySans.toFixed(1) + '/10 (' + sansMed.length + ' j)';
+      li.append(nom, val);
+      ul.appendChild(li);
+    }
   }
 
   function montrerVide(idCanvas, idVide){
