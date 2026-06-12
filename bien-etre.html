@@ -9,91 +9,84 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Katibeh&display=swap" rel="stylesheet">
 <style>
   :root{
-    --noir:#000000;
-    --blanc:#FFFFFF;
-    --gris-texte:#828282;
-    --gris-bordure:#E6E6E6;
+    --noir:#000;--blanc:#FFF;
+    --gris-texte:#828282;--gris-bordure:#E6E6E6;
+    --rose:#FD8BAB;--rose-pale:rgba(253,139,171,.34);
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   body{
     font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
-    font-size:14px;
-    color:var(--noir);
-    min-height:100dvh;
-    padding-bottom:88px;
+    font-size:14px;color:var(--noir);
+    min-height:100dvh;padding-bottom:88px;
     background:
       linear-gradient(to bottom, rgba(255,255,255,.55), rgba(255,255,255,.72)),
       url('assets/bg.jpg') center/cover no-repeat fixed;
   }
   .logo-haut{display:block;width:54px;margin:14px auto 4px;}
-  .entete{
-    display:grid;grid-template-columns:36px 1fr 36px;
-    align-items:center;padding:0 16px;margin-bottom:16px;
-  }
-  .retour{
-    background:none;border:none;cursor:pointer;
-    font-size:22px;line-height:1;color:var(--noir);
-    text-align:left;padding:4px;
-  }
-  .titre-page{
-    font-family:'Katibeh',serif;
-    font-size:38px;font-weight:400;
-    text-align:center;line-height:.9;margin-top:8px;
-  }
+  .entete{display:grid;grid-template-columns:36px 1fr 36px;align-items:center;padding:0 16px;margin-bottom:16px;}
+  .retour{background:none;border:none;cursor:pointer;font-size:22px;line-height:1;color:var(--noir);text-align:left;padding:4px;}
+  .titre-page{font-family:'Katibeh',serif;font-size:38px;font-weight:400;text-align:center;line-height:.9;margin-top:8px;color:var(--noir);}
   .cartes{padding:0 12px;display:flex;flex-direction:column;gap:16px;}
-  .carte{
-    border:none;
+  /* carte de phase en haut */
+  .carte-phase{
+    background:rgba(255,255,255,.78);
+    border:1.5px solid var(--rose);
     border-radius:14px;
-    padding:0;
-    text-align:left;
-    cursor:pointer;
-    font:inherit;
-    overflow:hidden;
-    width:100%;
+    padding:16px;
+  }
+  .carte-phase h2{
+    font-family:'Katibeh',serif;
+    font-size:30px;font-weight:400;line-height:.9;
+    color:var(--noir);
+    padding-top:6px;margin-bottom:6px;
+  }
+  .carte-phase .explication{font-size:13.5px;line-height:1.55;color:#474646;}
+  .carte-phase .conseils-titre{
+    font-size:12px;font-weight:700;color:var(--gris-texte);
+    text-transform:uppercase;letter-spacing:.06em;
+    margin:12px 0 6px;
+  }
+  .carte-phase ul{list-style:none;}
+  .carte-phase li{
+    font-size:13.5px;line-height:1.5;
+    padding:4px 0 4px 20px;
+    position:relative;
+  }
+  .carte-phase li::before{
+    content:'•';color:var(--rose);font-weight:700;
+    position:absolute;left:6px;
+  }
+  /* cartes thématiques : blanches, titres noirs */
+  .carte{
+    background:rgba(255,255,255,.78);
+    border:none;border-radius:14px;
+    padding:0;text-align:left;cursor:pointer;
+    font:inherit;overflow:hidden;width:100%;
+    color:var(--noir);
   }
   .carte-tete{
     display:flex;justify-content:space-between;align-items:flex-start;
-    padding:18px 16px;
-    min-height:96px;
+    padding:18px 16px;min-height:96px;
   }
-  .carte h2{font-size:19px;font-weight:700;}
+  .carte h2{font-size:19px;font-weight:700;color:var(--noir);}
   .carte .emoji{font-size:19px;}
   .carte-contenu{
     display:none;
-    background:rgba(255,255,255,.72);
+    background:rgba(255,255,255,.85);
+    border-top:1px solid #F2F2F2;
     padding:14px 16px;
   }
   .carte.ouverte .carte-contenu{display:block;}
-  .carte-contenu p{
-    font-size:13.5px;
-    line-height:1.55;
-    margin-bottom:9px;
-  }
+  .carte-contenu p{font-size:13.5px;line-height:1.55;margin-bottom:9px;color:var(--noir);}
   .carte-contenu p:last-child{margin-bottom:0;}
-  /* teintes pastel translucides, posées sur le dégradé */
-  .sport{background:rgba(251,215,192,.66);}
-  .alimentation{background:rgba(219,238,210,.66);}
-  .sommeil{background:rgba(213,230,250,.66);}
-  .eviter{background:rgba(250,202,210,.72);}
-  .avertissement{
-    color:var(--gris-texte);
-    font-size:11.5px;
-    text-align:center;
-    padding:18px 24px 0;
-  }
+  .avertissement{color:var(--gris-texte);font-size:11.5px;text-align:center;padding:18px 24px 0;}
   .nav-bas{
-    position:fixed;left:0;right:0;bottom:0;
-    background:var(--blanc);
+    position:fixed;left:0;right:0;bottom:0;background:var(--blanc);
     border-top:1px solid var(--gris-bordure);
     display:flex;justify-content:space-around;align-items:center;
-    padding:10px 8px calc(10px + env(safe-area-inset-bottom));
-    z-index:10;
+    padding:10px 8px calc(10px + env(safe-area-inset-bottom));z-index:10;
   }
-  .nav-bas a{
-    display:flex;align-items:center;justify-content:center;
-    width:44px;height:40px;border-radius:10px;
-  }
-  .nav-bas a:focus-visible{outline:2px solid var(--noir);}
+  .nav-bas a{display:flex;align-items:center;justify-content:center;width:44px;height:40px;border-radius:10px;}
   .nav-bas img{width:30px;height:30px;}
 </style>
 </head>
@@ -109,7 +102,15 @@
 
 <div class="cartes">
 
-  <button class="carte sport" aria-expanded="false">
+  <!-- Phase en cours + conseils adaptés -->
+  <div class="carte-phase">
+    <h2 id="phase-nom">Ta phase</h2>
+    <p class="explication" id="phase-explication">Chargement…</p>
+    <div class="conseils-titre">Conseils du moment</div>
+    <ul id="phase-conseils"></ul>
+  </div>
+
+  <button class="carte" aria-expanded="false">
     <div class="carte-tete"><h2>Sport</h2><span class="emoji">🏃‍♀️</span></div>
     <div class="carte-contenu">
       <p>Une activité douce et régulière (marche, natation, yoga, vélo tranquille) aide souvent à mieux vivre les douleurs : bouger un peu chaque jour compte plus qu'une grosse séance par semaine.</p>
@@ -118,7 +119,7 @@
     </div>
   </button>
 
-  <button class="carte alimentation" aria-expanded="false">
+  <button class="carte" aria-expanded="false">
     <div class="carte-tete"><h2>Alimentation</h2><span class="emoji">🥗</span></div>
     <div class="carte-contenu">
       <p>Privilégie les fruits, légumes, légumineuses, céréales complètes et sources d'oméga-3 (poissons gras, noix, huile de colza), et pense à bien t'hydrater au fil de la journée.</p>
@@ -127,7 +128,7 @@
     </div>
   </button>
 
-  <button class="carte sommeil" aria-expanded="false">
+  <button class="carte" aria-expanded="false">
     <div class="carte-tete"><h2>Sommeil</h2><span class="emoji">🌙</span></div>
     <div class="carte-contenu">
       <p>Le manque de sommeil amplifie la perception de la douleur. Vise des horaires réguliers de coucher et de lever, même le week-end.</p>
@@ -136,7 +137,7 @@
     </div>
   </button>
 
-  <button class="carte eviter" aria-expanded="false">
+  <button class="carte" aria-expanded="false">
     <div class="carte-tete"><h2>À éviter</h2><span class="emoji">🚨</span></div>
     <div class="carte-contenu">
       <p>Le tabac et l'alcool ont tendance à entretenir l'inflammation et à perturber le sommeil ; les limiter est l'un des gestes les plus utiles.</p>
@@ -158,7 +159,115 @@
   <a href="profil.html" aria-label="Profil"><img src="assets/icons/profil.svg" alt=""></a>
 </nav>
 
+<!-- ============ FIREBASE ============ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDunVhY9SnccIn78SU0SWyFDrXDrbSM9dw",
+    authDomain: "mimiendo-73245.firebaseapp.com",
+    projectId: "mimiendo-73245",
+    storageBucket: "mimiendo-73245.firebasestorage.app",
+    messagingSenderId: "989010109768",
+    appId: "1:989010109768:web:8cf8cf916f04ac5feebf7d",
+    measurementId: "G-2ZF2VBZP3G"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  /* ---------- contenus par phase ---------- */
+  const PHASES = {
+    'Phase menstruelle': {
+      emoji: '🩸',
+      explication: "Tes règles : l'endomètre s'évacue, et les prostaglandines libérées provoquent les contractions de l'utérus — d'où les crampes. L'énergie est souvent au plus bas, c'est normal.",
+      conseils: [
+        "La chaleur (bouillotte sur le ventre ou le bas du dos) reste l'une des aides les plus efficaces contre les crampes.",
+        "Hydrate-toi bien et privilégie les aliments riches en fer (légumineuses, viande, épinards) pour compenser les pertes.",
+        "Du mouvement très doux — marche lente, étirements — peut soulager ; aucune obligation de performance.",
+        "Accorde-toi du repos sans culpabiliser : note ta douleur dans le bilan pour suivre son évolution."
+      ]
+    },
+    'Phase folliculaire': {
+      emoji: '🌱',
+      explication: "Les œstrogènes remontent progressivement : l'énergie, la concentration et l'humeur ont tendance à s'améliorer. C'est souvent la phase la plus confortable du cycle.",
+      conseils: [
+        "Bon moment pour les activités physiques plus soutenues si tu en as envie : ton corps récupère généralement mieux.",
+        "Profites-en pour planifier ce qui demande de l'énergie (rendez-vous importants, projets).",
+        "Continue ton journal même quand tout va bien : les jours « sans symptôme » sont aussi des données précieuses pour tes analyses."
+      ]
+    },
+    'Phase ovulatoire': {
+      emoji: '⭐',
+      explication: "Le pic d'œstrogènes et de LH déclenche l'ovulation. Certaines ressentent une douleur ovulatoire d'un côté du bassin, et la glaire devient transparente et filante (type « blanc d'œuf »).",
+      conseils: [
+        "Si tu ressens des douleurs pelviennes marquées à cette période, note leur côté et leur intensité dans ton bilan : c'est une information utile pour ton médecin.",
+        "C'est la fenêtre la plus fertile du cycle — à garder en tête selon ton objectif.",
+        "Hydratation et activité douce restent tes alliées."
+      ]
+    },
+    'Phase lutéale': {
+      emoji: '🌾',
+      explication: "La progestérone domine. C'est la phase du syndrome prémenstruel : irritabilité, ballonnements, fringales, seins sensibles et fatigue peuvent apparaître, surtout dans les derniers jours.",
+      conseils: [
+        "Privilégie les aliments riches en magnésium (oléagineux, chocolat noir, légumes verts) et réduis caféine et alcool, qui accentuent souvent les symptômes.",
+        "Garde des horaires de sommeil réguliers : la qualité du sommeil se fragilise dans cette phase.",
+        "Les fringales sucrées sont fréquentes et normales — note-les dans ton bilan plutôt que de culpabiliser.",
+        "Sois douce avec toi-même : les sautes d'humeur ont une explication hormonale, pas un défaut de caractère."
+      ]
+    }
+  };
+
+  function aMinuit(d){ const x = new Date(d); x.setHours(0,0,0,0); return x; }
+  function joursEntre(a,b){ return Math.round((b-a)/86400000); }
+
+  auth.onAuthStateChanged(async user => {
+    if (!user || user.isAnonymous) { window.location.href = 'index.html'; return; }
+    const doc = await db.collection('users').doc(user.uid).get();
+    const profil = doc.exists ? doc.data() : {};
+
+    const nomEl = document.getElementById('phase-nom');
+    const expEl = document.getElementById('phase-explication');
+    const consEl = document.getElementById('phase-conseils');
+
+    // contraception continue : pas de cycle hormonal à expliquer
+    if (profil.suiviRegles === false){
+      nomEl.textContent = 'Ton suivi 🌸';
+      expEl.textContent = "Avec ta contraception en continu, ton cycle hormonal est mis au repos : pas de phases à proprement parler. Les conseils généraux ci-dessous restent valables, et ton bilan quotidien garde tout son intérêt pour suivre douleurs et symptômes.";
+      consEl.innerHTML = '<li>Remplis ton bilan régulièrement : c\u2019est lui qui révèle tes tendances, indépendamment du cycle.</li><li>Des saignements inhabituels sous contraception continue méritent d\u2019être notés et signalés à ton médecin.</li>';
+      return;
+    }
+
+    if (!profil.lastPeriodStart){
+      nomEl.textContent = 'Ta phase 🌸';
+      expEl.textContent = "Indique le début de tes règles sur l'écran Cycle (bouton Règles) pour que je puisse estimer ta phase et adapter les conseils.";
+      consEl.innerHTML = '';
+      return;
+    }
+
+    const L = profil.cycleLength || 28;
+    const P = profil.periodLength || 5;
+    const debut = aMinuit(new Date(profil.lastPeriodStart));
+    const jour = ((joursEntre(debut, aMinuit(new Date())) % L) + L) % L + 1;
+    const ov = L - 14;
+    let phase;
+    if (jour <= P) phase = 'Phase menstruelle';
+    else if (jour < ov - 1) phase = 'Phase folliculaire';
+    else if (jour <= ov + 1) phase = 'Phase ovulatoire';
+    else phase = 'Phase lutéale';
+
+    const p = PHASES[phase];
+    nomEl.textContent = phase + ' ' + p.emoji + '  ·  J' + jour;
+    expEl.textContent = p.explication;
+    consEl.innerHTML = '';
+    p.conseils.forEach(c => {
+      const li = document.createElement('li');
+      li.textContent = c;
+      consEl.appendChild(li);
+    });
+  });
+
   // cartes dépliables
   document.querySelectorAll('.carte').forEach(carte => {
     carte.addEventListener('click', () => {
