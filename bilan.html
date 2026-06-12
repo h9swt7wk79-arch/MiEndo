@@ -42,6 +42,7 @@
     overflow:hidden;
   }
   .section-tete{
+    color:var(--noir);
     width:100%;display:flex;justify-content:space-between;align-items:center;
     padding:13px 16px;background:none;border:none;cursor:pointer;
     font:inherit;font-size:14px;font-weight:600;text-align:left;
@@ -56,6 +57,7 @@
   .section.ouverte .section-corps{display:block;}
   .chips{display:flex;flex-wrap:wrap;gap:8px;}
   .chip{
+    color:var(--noir);
     border:1px solid var(--gris-bordure);background:var(--blanc);
     border-radius:999px;padding:7px 13px;
     font:inherit;font-size:13px;cursor:pointer;
@@ -230,7 +232,10 @@
 
   /* ---------- état ---------- */
   let uid = null;
-  let dateCourante = new Date();
+  // date passée en paramètre (clic sur un jour du calendrier), sinon aujourd'hui
+  const parametreDate = new URLSearchParams(window.location.search).get('date');
+  let dateCourante = parametreDate ? new Date(parametreDate + 'T00:00:00') : new Date();
+  if (isNaN(dateCourante)) dateCourante = new Date();
   let reponses = {}; // état courant du formulaire
 
   function cleDate(d){
