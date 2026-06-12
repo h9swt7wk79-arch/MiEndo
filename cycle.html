@@ -363,7 +363,23 @@
       console.warn('Lecture Firestore impossible, affichage des données de démo.', e);
     }
     toutAfficher();
+    synchroniserPartage();
   });
+
+  // tient l'espace partenaire à jour à chaque visite
+  async function synchroniserPartage(){
+    try {
+      if (!cycle.codePartenaire || !cycle.lastPeriodStart) return;
+      const e = etatCycle();
+      const proch = new Date(); proch.setDate(proch.getDate() + e.resteAvantRegles);
+      await db.collection('partage').doc(cycle.codePartenaire).set({
+        phase: e.phase,
+        jourCycle: e.jour,
+        prochainesRegles: cleDate(proch),
+        majLe: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    } catch(err){ console.warn('Partage non synchronisé', err); }
+  }
 
   /* ---------- calculs de cycle ---------- */
   function joursEntre(a, b){ return Math.round((b - a) / 86400000); }
@@ -553,14 +569,9 @@
     window.location.href = 'bilan.html';
   });
 
-  // ALERTE : SMS d'urgence pré-rempli
-  // (numéro et message personnalisables plus tard dans les paramètres :
-  //  champs telUrgence et messageUrgence du document users/{uid})
+  // ALERTE : ouvre le mode SOS (respiration, réflexes, SMS d'urgence, crise express)
   document.getElementById('puce-alerte').addEventListener('click', () => {
-    const texte = cycle.messageUrgence ||
-      "J'ai une crise de douleur en ce moment, peux-tu m'appeler ou venir m'aider ?";
-    const tel = cycle.telUrgence || '';
-    window.location.href = `sms:${tel}?&body=${encodeURIComponent(texte)}`;
+    window.location.href = 'sos.html';
   });
 
   /* ---------- fiche résumé d'un jour ---------- */
