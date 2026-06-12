@@ -205,10 +205,27 @@
     if (!profil.codePartenaire){
       // première fois : génération + création du document de partage
       const code = genererCode();
-      await db.collection('partage').doc(code).set({
+      // on amorce le document avec les infos de cycle actuelles,
+      // pour que le partenaire voie quelque chose dès la première connexion
+      const amorce = {
         proprietaire: uid,
         creeLe: firebase.firestore.FieldValue.serverTimestamp()
-      });
+      };
+      if (profil.lastPeriodStart){
+        const L = profil.cycleLength || 28, P = profil.periodLength || 5;
+        const debut = new Date(profil.lastPeriodStart); debut.setHours(0,0,0,0);
+        const auj = new Date(); auj.setHours(0,0,0,0);
+        const jour = ((Math.round((auj-debut)/86400000) % L) + L) % L + 1;
+        const ov = L - 14;
+        amorce.jourCycle = jour;
+        amorce.phase = jour <= P ? 'Phase menstruelle'
+          : jour < ov-1 ? 'Phase folliculaire'
+          : jour <= ov+1 ? 'Phase ovulatoire' : 'Phase lutéale';
+        const proch = new Date(); proch.setDate(proch.getDate() + (L - jour + 1));
+        amorce.prochainesRegles = proch.getFullYear() + '-' +
+          String(proch.getMonth()+1).padStart(2,'0') + '-' + String(proch.getDate()).padStart(2,'0');
+      }
+      await db.collection('partage').doc(code).set(amorce);
       await db.collection('users').doc(uid).set({ codePartenaire: code }, { merge:true });
       profil.codePartenaire = code;
     }
