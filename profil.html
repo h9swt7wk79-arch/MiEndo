@@ -121,7 +121,7 @@
     <h2>Importation des données</h2>
     <label class="centre" for="fichier-import">
       <span class="emoji">📥</span>
-      <span class="legende">Cliquez ci-dessus (sauvegarde JSON MiEndo)</span>
+      <span class="legende">Cliquez ci-dessus (sauvegarde MiEndo ou export Flo)</span>
     </label>
     <input type="file" id="fichier-import" accept=".json,application/json">
     <div class="confirmation" id="confirmation-import"></div>
@@ -300,34 +300,153 @@
     URL.revokeObjectURL(a.href);
   });
 
-  /* ---------- import ---------- */
+  /* ---------- import (sauvegarde MiEndo OU export Flo) ---------- */
+
+  // Cherche récursivement le tableau "cycles" de Flo, où qu'il soit dans le fichier
+  function trouverCyclesFlo(obj, profondeur = 0){
+    if (!obj || typeof obj !== 'object' || profondeur > 6) return null;
+    if (Array.isArray(obj)){
+      if (obj.length && obj[0] && typeof obj[0] === 'object' && 'period_start_date' in obj[0]) return obj;
+      for (const el of obj){ const r = trouverCyclesFlo(el, profondeur + 1); if (r) return r; }
+      return null;
+    }
+    if (Array.isArray(obj.cycles) && obj.cycles.length &&
+        obj.cycles[0] && 'period_start_date' in obj.cycles[0]) return obj.cycles;
+    for (const v of Object.values(obj)){ const r = trouverCyclesFlo(v, profondeur + 1); if (r) return r; }
+    return null;
+  }
+  function trouverProfilFlo(obj, profondeur = 0){
+    if (!obj || typeof obj !== 'object' || profondeur > 6) return null;
+    if (Array.isArray(obj.profiles) && obj.profiles.length && obj.profiles[0].birth_date !== undefined)
+      return obj.profiles[0];
+    for (const v of Object.values(obj)){
+      if (v && typeof v === 'object'){ const r = trouverProfilFlo(v, profondeur + 1); if (r) return r; }
+    }
+    return null;
+  }
+  function cleDepuisDate(d){
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function mediane(liste){
+    if (!liste.length) return null;
+    const t = [...liste].sort((a,b) => a-b);
+    return t[Math.floor(t.length/2)];
+  }
+
+  async function importerFlo(donnees){
+    const cycles = trouverCyclesFlo(donnees);
+    if (!cycles) return null;
+
+    const FLUX = { 1:'💧', 2:'💧💧', 3:'🌊' };
+    let lot = db.batch(), n = 0, joursImportes = 0;
+    const valider = async () => { await lot.commit(); lot = db.batch(); n = 0; };
+    const debuts = [];
+    const dureesRegles = [];
+
+    for (const c of cycles){
+      if (!c.period_start_date || c.pregnant) continue;
+      const debut = new Date(c.period_start_date.replace(' ', 'T'));
+      if (isNaN(debut)) continue;
+      const fin = c.period_end_date ? new Date(c.period_end_date.replace(' ', 'T')) : new Date(debut);
+      debuts.push(debut);
+      const duree = Math.round((fin - debut) / 86400000) + 1;
+      if (duree >= 2 && duree <= 10) dureesRegles.push(duree);
+
+      // intensité par jour : {"0": 2, "1": 3, ...} (chaîne JSON chez Flo)
+      let intensites = {};
+      try { intensites = JSON.parse(c.period_intensity || '{}'); } catch(e){}
+
+      const d = new Date(debut);
+      let offset = 0;
+      while (d <= fin && offset < 15){ // garde-fou
+        const entree = { regles: true, importeDe: 'flo' };
+        if (FLUX[intensites[String(offset)]]) entree.flux = FLUX[intensites[String(offset)]];
+        lot.set(db.collection('users').doc(uid).collection('journal').doc(cleDepuisDate(d)),
+                entree, { merge: true });
+        joursImportes++;
+        if (++n >= 400) await valider();
+        d.setDate(d.getDate() + 1);
+        offset++;
+      }
+    }
+    if (n) await valider();
+
+    // paramètres de cycle estimés à partir de l'historique importé
+    if (debuts.length){
+      debuts.sort((a,b) => a-b);
+      const dernierDebut = debuts[debuts.length - 1];
+      const longueurs = [];
+      for (let i = 1; i < debuts.length; i++){
+        const l = Math.round((debuts[i] - debuts[i-1]) / 86400000);
+        if (l >= 15 && l <= 60) longueurs.push(l); // on ignore les écarts aberrants (pauses d'utilisation)
+      }
+      const maj = { lastPeriodStart: cleDepuisDate(dernierDebut) };
+      const cycleEstime = mediane(longueurs);
+      if (cycleEstime) maj.cycleLength = cycleEstime;
+      const dureeEstimee = mediane(dureesRegles);
+      if (dureeEstimee) maj.periodLength = dureeEstimee;
+
+      // âge depuis la date de naissance du profil Flo, si absent
+      const profilFlo = trouverProfilFlo(donnees);
+      if (profilFlo && profilFlo.birth_date && !profil.age){
+        const naissance = new Date(profilFlo.birth_date);
+        if (!isNaN(naissance)){
+          const auj = new Date();
+          let age = auj.getFullYear() - naissance.getFullYear();
+          if (auj < new Date(auj.getFullYear(), naissance.getMonth(), naissance.getDate())) age--;
+          if (age > 10 && age < 100) maj.age = age;
+        }
+      }
+      await db.collection('users').doc(uid).set(maj, { merge: true });
+    }
+    return { cycles: debuts.length, jours: joursImportes };
+  }
+
   document.getElementById('fichier-import').addEventListener('change', async e => {
     const fichier = e.target.files[0];
+    const confirmation = document.getElementById('confirmation-import');
     if (!fichier || !uid) return;
+    confirmation.style.color = '';
+    confirmation.textContent = 'Import en cours…';
     try {
       const donnees = JSON.parse(await fichier.text());
-      if (!donnees.journal && !donnees.aliments && !donnees.rendezvous)
-        throw new Error('Format inattendu');
-      let lot = db.batch(), n = 0;
-      const valider = async () => { await lot.commit(); lot = db.batch(); n = 0; };
-      for (const [dt, val] of Object.entries(donnees.journal || {})){
-        lot.set(db.collection('users').doc(uid).collection('journal').doc(dt), val, { merge:true });
-        if (++n >= 400) await valider();
+
+      // 1) sauvegarde MiEndo
+      if (donnees.journal || donnees.aliments || donnees.rendezvous){
+        let lot = db.batch(), n = 0;
+        const valider = async () => { await lot.commit(); lot = db.batch(); n = 0; };
+        for (const [dt, val] of Object.entries(donnees.journal || {})){
+          lot.set(db.collection('users').doc(uid).collection('journal').doc(dt), val, { merge:true });
+          if (++n >= 400) await valider();
+        }
+        for (const a of donnees.aliments || []){
+          lot.set(db.collection('users').doc(uid).collection('aliments').doc(), a);
+          if (++n >= 400) await valider();
+        }
+        for (const r of donnees.rendezvous || []){
+          lot.set(db.collection('users').doc(uid).collection('rendezvous').doc(), r);
+          if (++n >= 400) await valider();
+        }
+        if (n) await lot.commit();
+        confirmation.textContent = 'Sauvegarde MiEndo importée ✓';
+        return;
       }
-      for (const a of donnees.aliments || []){
-        lot.set(db.collection('users').doc(uid).collection('aliments').doc(), a);
-        if (++n >= 400) await valider();
+
+      // 2) export Flo
+      const resultat = await importerFlo(donnees);
+      if (resultat){
+        confirmation.textContent =
+          `Import Flo réussi ✓ ${resultat.cycles} cycle${resultat.cycles > 1 ? 's' : ''}, ${resultat.jours} jours de règles.`;
+        return;
       }
-      for (const r of donnees.rendezvous || []){
-        lot.set(db.collection('users').doc(uid).collection('rendezvous').doc(), r);
-        if (++n >= 400) await valider();
-      }
-      if (n) await lot.commit();
-      document.getElementById('confirmation-import').textContent = 'Données importées ✓';
+
+      throw new Error('Format non reconnu');
     } catch (err){
       console.error(err);
-      document.getElementById('confirmation-import').textContent = 'Fichier invalide (sauvegarde JSON MiEndo attendue).';
-      document.getElementById('confirmation-import').style.color = '#B3261E';
+      confirmation.textContent = err.message === 'Format non reconnu'
+        ? 'Format non reconnu : ni sauvegarde MiEndo, ni export Flo avec cycles.'
+        : 'Fichier illisible (JSON invalide ou incomplet).';
+      confirmation.style.color = '#B3261E';
     }
   });
 
