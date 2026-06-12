@@ -189,18 +189,22 @@
   <button class="creer" id="btn-creer">Créer un compte</button>
 </main>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDunVhY9SnccIn78SU0SWyFDrXDrbSM9dw",
-  authDomain: "mimiendo-73245.firebaseapp.com",
-  projectId: "mimiendo-73245",
-  storageBucket: "mimiendo-73245.firebasestorage.app",
-  messagingSenderId: "989010109768",
-  appId: "1:989010109768:web:8cf8cf916f04ac5feebf7d",
-  measurementId: "G-2ZF2VBZP3G"
-};
+<!-- ============ FIREBASE (SDK compat, comme ton app actuelle) ============ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDunVhY9SnccIn78SU0SWyFDrXDrbSM9dw",
+    authDomain: "mimiendo-73245.firebaseapp.com",
+    projectId: "mimiendo-73245",
+    storageBucket: "mimiendo-73245.firebasestorage.app",
+    messagingSenderId: "989010109768",
+    appId: "1:989010109768:web:8cf8cf916f04ac5feebf7d",
+    measurementId: "G-2ZF2VBZP3G"
+  };
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
 
   // --- éléments ---
   const champEmail  = document.getElementById('email');
@@ -227,7 +231,7 @@ const auth = firebase.auth();
   // IMPORTANT : un seul onAuthStateChanged, déclaré au chargement (pas dans un clic).
   auth.onAuthStateChanged((user) => {
     if (user) {
-      window.location.href = 'app.html'; // ⚠️ remplace par ta page d'accueil
+      window.location.href = 'cycle.html';
     }
   });
 
