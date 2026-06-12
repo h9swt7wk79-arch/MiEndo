@@ -187,11 +187,14 @@
   <p class="legal">By clicking continue, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></p>
 
   <button class="creer" id="btn-creer">Créer un compte</button>
+
+  <a class="legal" style="margin-top:14px;display:block;" href="partenaire.html">💑 Espace partenaire (connexion par code)</a>
 </main>
 
 <!-- ============ FIREBASE (SDK compat, comme ton app actuelle) ============ -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyDunVhY9SnccIn78SU0SWyFDrXDrbSM9dw",
@@ -205,6 +208,7 @@
 
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
+  const db = firebase.firestore();
 
   // --- éléments ---
   const champEmail  = document.getElementById('email');
@@ -229,9 +233,14 @@
 
   // --- Redirection si déjà connecté / après connexion ---
   // IMPORTANT : un seul onAuthStateChanged, déclaré au chargement (pas dans un clic).
-  auth.onAuthStateChanged((user) => {
-    if (user) {
-      window.location.href = 'cycle.html';
+  auth.onAuthStateChanged(async (user) => {
+    if (!user || user.isAnonymous) return; // les partenaires anonymes ne rentrent pas dans l'app
+    // questionnaire d'accueil au premier passage, sinon écran Cycle
+    try {
+      const doc = await db.collection('users').doc(user.uid).get();
+      window.location.href = (doc.exists && doc.data().onboardingFait) ? 'cycle.html' : 'onboarding.html';
+    } catch(e) {
+      window.location.href = 'onboarding.html';
     }
   });
 
