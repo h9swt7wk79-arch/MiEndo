@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MiEndo — Analyses</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Katibeh&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --noir:#000000;
+    --blanc:#FFFFFF;
+    --gris-texte:#828282;
+    --gris-bordure:#E6E6E6;
+    --rose:#FD8BAB;
+    --rose-pale:rgba(253,139,171,.34);
+    --bleu-pale:#DCEAFB;
+    --radius:10px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:14px;
+    color:var(--noir);
+    min-height:100dvh;
+    padding-bottom:88px;
+    background:
+      linear-gradient(to bottom, rgba(255,255,255,.6), rgba(255,255,255,.8)),
+      url('assets/bg.jpg') center/cover no-repeat fixed;
+  }
+  .logo-haut{display:block;width:54px;margin:14px auto 4px;}
+  .entete{
+    display:grid;grid-template-columns:36px 1fr 36px;
+    align-items:center;padding:0 16px;margin-bottom:14px;
+  }
+  .retour{
+    background:none;border:none;cursor:pointer;
+    font-size:22px;line-height:1;color:var(--noir);
+    text-align:left;padding:4px;
+  }
+  .titre-page{
+    font-family:'Katibeh',serif;
+    font-size:38px;font-weight:400;
+    text-align:center;line-height:.9;margin-top:8px;
+  }
+  .contenu{padding:0 16px;display:flex;flex-direction:column;gap:14px;}
+  .carte{
+    background:var(--blanc);
+    border-radius:16px;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
+    padding:16px;
+  }
+  .carte h2{
+    font-size:14px;font-weight:600;margin-bottom:4px;
+  }
+  .carte .note{color:var(--gris-texte);font-size:12px;margin-bottom:12px;}
+  .resume{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+  }
+  .resume .bloc{
+    background:var(--blanc);
+    border-radius:16px;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
+    padding:12px 8px;
+    text-align:center;
+  }
+  .bloc .valeur{font-size:21px;font-weight:700;line-height:1.1;}
+  .bloc .libelle{color:var(--gris-texte);font-size:11px;margin-top:3px;}
+  .liste-aliments{list-style:none;}
+  .liste-aliments li{
+    display:flex;justify-content:space-between;
+    padding:7px 2px;
+    border-bottom:1px solid #F2F2F2;
+    font-size:13.5px;
+  }
+  .liste-aliments li:last-child{border-bottom:none;}
+  .liste-aliments .compte{color:var(--gris-texte);font-size:12.5px;}
+  .vide-carte{color:#B5B5B5;font-size:13px;padding:8px 0;}
+  .avertissement{
+    color:var(--gris-texte);
+    font-size:11.5px;
+    text-align:center;
+    padding:4px 20px 0;
+  }
+  canvas{max-height:220px;}
+  .nav-bas{
+    position:fixed;left:0;right:0;bottom:0;
+    background:var(--blanc);
+    border-top:1px solid var(--gris-bordure);
+    display:flex;justify-content:space-around;align-items:center;
+    padding:10px 8px calc(10px + env(safe-area-inset-bottom));
+    z-index:10;
+  }
+  .nav-bas a{
+    display:flex;align-items:center;justify-content:center;
+    width:44px;height:40px;border-radius:10px;
+  }
+  .nav-bas a:focus-visible{outline:2px solid var(--noir);}
+  .nav-bas img{width:30px;height:30px;}
+</style>
+</head>
+<body>
+
+<img class="logo-haut" src="assets/logo.png" alt="MiEndo">
+
+<div class="entete">
+  <button class="retour" aria-label="Retour" onclick="history.back()">‹</button>
+  <h1 class="titre-page">Analyses</h1>
+  <span></span>
+</div>
+
+<div class="contenu">
+
+  <div class="resume">
+    <div class="bloc"><span class="valeur" id="stat-jour">–</span><div class="libelle">Jour du cycle</div></div>
+    <div class="bloc"><span class="valeur" id="stat-douleur">–</span><div class="libelle">Douleur moy. (30 j)</div></div>
+    <div class="bloc"><span class="valeur" id="stat-crises">–</span><div class="libelle">Jours douleur &gt; 4 (30 j)</div></div>
+  </div>
+
+  <div class="carte">
+    <h2>Douleur au fil du cycle</h2>
+    <div class="note">Cycle en cours, échelle 0–10</div>
+    <canvas id="graphe-douleur"></canvas>
+    <div class="vide-carte" id="vide-douleur" hidden>Pas encore de douleurs enregistrées ce cycle.</div>
+  </div>
+
+  <div class="carte">
+    <h2>Douleur moyenne par phase</h2>
+    <div class="note">Sur l'ensemble de tes données</div>
+    <canvas id="graphe-phases"></canvas>
+    <div class="vide-carte" id="vide-phases" hidden>Pas encore assez de données.</div>
+  </div>
+
+  <div class="carte">
+    <h2>Aliments des jours douloureux</h2>
+    <div class="note">Les plus fréquents quand la douleur dépasse 4</div>
+    <ul class="liste-aliments" id="liste-douleur"></ul>
+    <div class="vide-carte" id="vide-aliments" hidden>Pas encore assez de données croisées repas / douleur.</div>
+  </div>
+
+  <p class="avertissement">Ces analyses sont indicatives : elles montrent des associations dans tes données, pas des liens de cause à effet.</p>
+
+</div>
+
+<nav class="nav-bas">
+  <a href="cycle.html" aria-label="Cycle"><img src="assets/icons/lune.svg" alt=""></a>
+  <a href="repas.html" aria-label="Repas"><img src="assets/icons/poids.svg" alt=""></a>
+  <a href="rendez-vous.html" aria-label="Rendez-vous"><img src="assets/icons/calendrier.svg" alt=""></a>
+  <a href="analyses.html" aria-current="page" aria-label="Analyses"><img src="assets/icons/stats.svg" alt=""></a>
+  <a href="#" aria-label="Conseils bien-être"><img src="assets/icons/feuille.svg" alt=""></a>
+  <a href="#" aria-label="Profil"><img src="assets/icons/profil.svg" alt=""></a>
+</nav>
+
+<!-- ============ FIREBASE ============ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDunVhY9SnccIn78SU0SWyFDrXDrbSM9dw",
+    authDomain: "mimiendo-73245.firebaseapp.com",
+    projectId: "mimiendo-73245",
+    storageBucket: "mimiendo-73245.firebasestorage.app",
+    messagingSenderId: "989010109768",
+    appId: "1:989010109768:web:8cf8cf916f04ac5feebf7d",
+    measurementId: "G-2ZF2VBZP3G"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  let cycle = { lastPeriodStart: null, cycleLength: 28, periodLength: 5 };
+  let journal = {};   // { "YYYY-MM-DD": {douleur, bilan, regles} }
+  let aliments = [];  // [{date, repas, nom, ...}]
+
+  const ROSE = '#FD8BAB';
+
+  function aMinuit(d){ const x = new Date(d); x.setHours(0,0,0,0); return x; }
+  function joursEntre(a,b){ return Math.round((b-a)/86400000); }
+  function cleDate(d){
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+
+  function jourDuCycle(date){
+    if (!cycle.lastPeriodStart) return null;
+    const debut = aMinuit(new Date(cycle.lastPeriodStart));
+    const ecart = joursEntre(debut, aMinuit(date));
+    if (ecart < 0) return null;
+    return ecart % cycle.cycleLength + 1;
+  }
+
+  function phaseDuJour(j){
+    const ov = cycle.cycleLength - 14;
+    if (j <= cycle.periodLength) return 'Menstruelle';
+    if (j < ov - 1) return 'Folliculaire';
+    if (j <= ov + 1) return 'Ovulatoire';
+    return 'Lutéale';
+  }
+
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) { window.location.href = 'index.html'; return; }
+    const uid = user.uid;
+
+    const [docUser, snapJournal, snapAliments] = await Promise.all([
+      db.collection('users').doc(uid).get(),
+      db.collection('users').doc(uid).collection('journal').get(),
+      db.collection('users').doc(uid).collection('aliments').get()
+    ]);
+    if (docUser.exists) cycle = { ...cycle, ...docUser.data() };
+    snapJournal.forEach(d => journal[d.id] = d.data());
+    aliments = snapAliments.docs.map(d => d.data());
+
+    afficherResume();
+    afficherDouleurCycle();
+    afficherDouleurParPhase();
+    afficherAlimentsDouleur();
+  });
+
+  /* ---------- résumé ---------- */
+  function afficherResume(){
+    const j = jourDuCycle(new Date());
+    document.getElementById('stat-jour').textContent = j ? 'J' + j : '–';
+
+    const il30 = aMinuit(new Date()); il30.setDate(il30.getDate() - 30);
+    const douleurs30 = Object.entries(journal)
+      .filter(([date, v]) => new Date(date) >= il30 && typeof v.douleur === 'number')
+      .map(([_, v]) => v.douleur);
+    document.getElementById('stat-douleur').textContent =
+      douleurs30.length ? (douleurs30.reduce((a,b)=>a+b,0)/douleurs30.length).toFixed(1) : '–';
+    document.getElementById('stat-crises').textContent =
+      douleurs30.length ? douleurs30.filter(d => d > 4).length : '–';
+  }
+
+  /* ---------- douleur du cycle en cours ---------- */
+  function afficherDouleurCycle(){
+    if (!cycle.lastPeriodStart){ montrerVide('graphe-douleur','vide-douleur'); return; }
+    const debut = aMinuit(new Date(cycle.lastPeriodStart));
+    const auj = aMinuit(new Date());
+    // début du cycle EN COURS
+    const ecart = joursEntre(debut, auj);
+    const debutCycle = new Date(debut);
+    debutCycle.setDate(debutCycle.getDate() + Math.floor(ecart / cycle.cycleLength) * cycle.cycleLength);
+
+    const labels = [], valeurs = [];
+    let auMoinsUne = false;
+    for (let j = 0; j < cycle.cycleLength; j++){
+      const d = new Date(debutCycle); d.setDate(d.getDate() + j);
+      if (d > auj) break;
+      labels.push('J' + (j+1));
+      const entree = journal[cleDate(d)];
+      const val = entree && typeof entree.douleur === 'number' ? entree.douleur : null;
+      if (val !== null) auMoinsUne = true;
+      valeurs.push(val);
+    }
+    if (!auMoinsUne){ montrerVide('graphe-douleur','vide-douleur'); return; }
+
+    new Chart(document.getElementById('graphe-douleur'), {
+      type: 'line',
+      data: { labels, datasets: [{
+        data: valeurs,
+        borderColor: ROSE,
+        backgroundColor: 'rgba(253,139,171,.15)',
+        fill: true,
+        spanGaps: true,
+        tension: .35,
+        pointRadius: 3,
+        pointBackgroundColor: ROSE
+      }]},
+      options: {
+        plugins: { legend: { display:false } },
+        scales: {
+          y: { min:0, max:10, ticks:{ stepSize:2 } },
+          x: { ticks:{ maxTicksLimit:10 }, grid:{ display:false } }
+        }
+      }
+    });
+  }
+
+  /* ---------- douleur moyenne par phase ---------- */
+  function afficherDouleurParPhase(){
+    const phases = { 'Menstruelle':[], 'Folliculaire':[], 'Ovulatoire':[], 'Lutéale':[] };
+    let n = 0;
+    for (const [date, v] of Object.entries(journal)){
+      if (typeof v.douleur !== 'number') continue;
+      const j = jourDuCycle(new Date(date));
+      if (!j) continue;
+      phases[phaseDuJour(j)].push(v.douleur);
+      n++;
+    }
+    if (n < 3){ montrerVide('graphe-phases','vide-phases'); return; }
+
+    const labels = Object.keys(phases);
+    const moyennes = labels.map(p =>
+      phases[p].length ? phases[p].reduce((a,b)=>a+b,0)/phases[p].length : 0);
+
+    new Chart(document.getElementById('graphe-phases'), {
+      type: 'bar',
+      data: { labels, datasets: [{
+        data: moyennes,
+        backgroundColor: ['#FD8BAB','#FDC1D2','#DCEAFB','#F3D9F7'],
+        borderRadius: 8
+      }]},
+      options: {
+        plugins: { legend: { display:false } },
+        scales: {
+          y: { min:0, max:10, ticks:{ stepSize:2 } },
+          x: { grid:{ display:false } }
+        }
+      }
+    });
+  }
+
+  /* ---------- aliments des jours douloureux ---------- */
+  function afficherAlimentsDouleur(){
+    const joursDouloureux = new Set(
+      Object.entries(journal)
+        .filter(([_, v]) => typeof v.douleur === 'number' && v.douleur > 4)
+        .map(([date]) => date)
+    );
+    const compte = {};
+    aliments.forEach(a => {
+      if (joursDouloureux.has(a.date)){
+        const nom = (a.nom || '').trim();
+        if (nom) compte[nom] = (compte[nom] || 0) + 1;
+      }
+    });
+    const tries = Object.entries(compte).sort((a,b) => b[1]-a[1]).slice(0,5);
+    if (!tries.length){
+      document.getElementById('vide-aliments').hidden = false;
+      return;
+    }
+    const ul = document.getElementById('liste-douleur');
+    tries.forEach(([nom, n]) => {
+      const li = document.createElement('li');
+      const spanNom = document.createElement('span');
+      spanNom.textContent = nom;
+      const spanN = document.createElement('span');
+      spanN.className = 'compte';
+      spanN.textContent = n + ' fois';
+      li.append(spanNom, spanN);
+      ul.appendChild(li);
+    });
+  }
+
+  function montrerVide(idCanvas, idVide){
+    document.getElementById(idCanvas).style.display = 'none';
+    document.getElementById(idVide).hidden = false;
+  }
+</script>
+</body>
+</html>
