@@ -70,6 +70,7 @@
     margin-bottom:22px;
   }
   .puce{
+    color:var(--noir);
     display:flex;align-items:center;gap:8px;
     background:var(--blanc);
     border:1px solid var(--gris-bordure);
@@ -164,6 +165,52 @@
     margin-top:2px;
     letter-spacing:1px;
   }
+  /* ---- fiche résumé d'un jour ---- */
+  .voile{
+    display:none;
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.35);
+    z-index:20;
+  }
+  .voile.visible{display:block;}
+  .fiche-jour{
+    position:fixed;left:0;right:0;bottom:0;
+    background:var(--blanc);
+    border-radius:20px 20px 0 0;
+    padding:18px 20px calc(20px + env(safe-area-inset-bottom));
+    z-index:21;
+    transform:translateY(105%);
+    transition:transform .22s ease;
+    max-height:75dvh;overflow-y:auto;
+  }
+  .fiche-jour.visible{transform:translateY(0);}
+  .fiche-tete{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:10px;
+  }
+  .fiche-date{font-weight:700;font-size:15px;text-transform:capitalize;color:var(--noir);}
+  .fiche-fermer{
+    background:none;border:none;cursor:pointer;
+    font-size:21px;color:var(--gris-texte);padding:2px 8px;line-height:1;
+  }
+  .fiche-ligne{
+    display:flex;gap:8px;
+    font-size:13.5px;line-height:1.5;
+    padding:5px 0;color:var(--noir);
+    border-bottom:1px solid #F4F4F4;
+  }
+  .fiche-ligne:last-of-type{border-bottom:none;}
+  .fiche-ligne .etiquette{color:var(--gris-texte);min-width:96px;flex-shrink:0;font-size:12.5px;padding-top:1px;}
+  .fiche-vide{color:#B5B5B5;font-size:13px;padding:10px 0;}
+  .fiche-actions{display:flex;flex-direction:column;gap:8px;margin-top:14px;}
+  .fiche-btn{
+    height:42px;border-radius:10px;border:none;cursor:pointer;
+    font:inherit;font-weight:500;
+  }
+  .fiche-btn-noir{background:var(--noir);color:var(--blanc);}
+  .fiche-btn-blanc{background:var(--blanc);color:#B3261E;border:1px solid var(--gris-bordure);}
+  .fiche-btn:active{opacity:.85;}
+
   /* ---- barre de navigation ---- */
   .nav-bas{
     position:fixed;
@@ -241,6 +288,21 @@
 </section>
 
 <!-- Navigation -->
+<!-- Fiche résumé d'un jour -->
+<div class="voile" id="voile"></div>
+<div class="fiche-jour" id="fiche-jour" role="dialog" aria-modal="true">
+  <div class="fiche-tete">
+    <span class="fiche-date" id="fiche-date"></span>
+    <button class="fiche-fermer" id="fiche-fermer" aria-label="Fermer">×</button>
+  </div>
+  <div id="fiche-contenu"></div>
+  <div class="fiche-actions">
+    <button class="fiche-btn fiche-btn-noir" id="fiche-bilan">Voir / modifier le bilan de ce jour</button>
+    <button class="fiche-btn fiche-btn-blanc" id="fiche-retirer-regles" hidden>Retirer les règles de ce jour</button>
+    <button class="fiche-btn fiche-btn-blanc" id="fiche-annuler-debut" hidden>Annuler ce début de règles (tous les jours marqués)</button>
+  </div>
+</div>
+
 <nav class="nav-bas">
   <a href="cycle.html" aria-current="page" aria-label="Cycle"><img src="assets/icons/lune.svg" alt=""></a>
   <a href="repas.html" aria-label="Repas"><img src="assets/icons/poids.svg" alt=""></a>
@@ -326,6 +388,14 @@
 
   /* ---------- anneau ---------- */
   function afficherAnneau(){
+    if (!cycle.lastPeriodStart){
+      document.getElementById('arc-progression').setAttribute('stroke-dasharray', '0 540.35');
+      document.getElementById('texte-phase').textContent = 'Ton cycle';
+      document.getElementById('texte-sous-phase').textContent = 'Appuie sur « Règles » au premier jour';
+      document.getElementById('marqueur').style.display = 'none';
+      return;
+    }
+    document.getElementById('marqueur').style.display = '';
     const { jour, L, phase, resteAvantRegles } = etatCycle();
     const r = 86, circ = 2 * Math.PI * r; // ≈ 540.35
     const fraction = jour / L;
@@ -365,6 +435,8 @@
     // jours loggés OU prédits depuis lastPeriodStart (récurrence du cycle)
     const j = journal[cleDate(d)];
     if (j && j.regles) return true;
+    if (j && j.regles === false) return false; // retirées manuellement
+    if (!cycle.lastPeriodStart) return false;
     const debut = aMinuit(new Date(cycle.lastPeriodStart));
     const ecart = joursEntre(debut, aMinuit(d));
     const pos = ((ecart % cycle.cycleLength) + cycle.cycleLength) % cycle.cycleLength;
@@ -372,6 +444,7 @@
   }
 
   function estJourOvulation(d){
+    if (!cycle.lastPeriodStart) return false;
     const debut = aMinuit(new Date(cycle.lastPeriodStart));
     const ecart = joursEntre(debut, aMinuit(d));
     const pos = ((ecart % cycle.cycleLength) + cycle.cycleLength) % cycle.cycleLength + 1;
@@ -413,6 +486,11 @@
         }
         td.innerHTML = `<span class="jour-num">${d.getDate()}</span>` +
                        (marqueurs ? `<span class="marqueurs">${marqueurs}</span>` : '');
+        if (!horsMois){
+          const dateCellule = new Date(d);
+          td.style.cursor = 'pointer';
+          td.addEventListener('click', () => ouvrirFiche(dateCellule));
+        }
         tr.appendChild(td);
         d.setDate(d.getDate() + 1);
       }
@@ -483,6 +561,131 @@
       "J'ai une crise de douleur en ce moment, peux-tu m'appeler ou venir m'aider ?";
     const tel = cycle.telUrgence || '';
     window.location.href = `sms:${tel}?&body=${encodeURIComponent(texte)}`;
+  });
+
+  /* ---------- fiche résumé d'un jour ---------- */
+  let dateFiche = null;
+
+  const LIBELLES_FICHE = [
+    ['bienetre',        'Bien-être'],
+    ['etatEmotionnel',  'Émotions'],
+    ['flux',            'Flux'],
+    ['pertes',          'Pertes'],
+    ['douleurs',        'Douleurs'],
+    ['etatGeneral',     'État général'],
+    ['digestion',       'Digestion'],
+    ['transit',         'Transit'],
+    ['fringales',       'Fringales'],
+    ['urine',           'Urine'],
+    ['vulveVagin',      'Vulve/vagin'],
+    ['peau',            'Peau'],
+    ['cheveux',         'Cheveux'],
+    ['sommeilQualite',  'Sommeil'],
+    ['stress',          'Stress'],
+    ['libido',          'Libido'],
+    ['rapport',         'Rapport'],
+    ['medicaments',     'Médicaments'],
+    ['complements',     'Compléments'],
+    ['therapies',       'Thérapies'],
+    ['dispositifs',     'Dispositifs'],
+    ['sport',           'Sport'],
+    ['fete',            'Fête/excès'],
+    ['bonus',           'Auto-soins'],
+    ['notes',           'Notes']
+  ];
+
+  function ouvrirFiche(d){
+    dateFiche = new Date(d);
+    const cle = cleDate(d);
+    const entree = journal[cle] || {};
+
+    document.getElementById('fiche-date').textContent =
+      d.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' });
+
+    const contenu = document.getElementById('fiche-contenu');
+    contenu.innerHTML = '';
+    const lignes = [];
+
+    if (entree.regles) lignes.push(['Règles', 'Oui (enregistrées)' + (entree.flux ? ' — flux ' + entree.flux : '')]);
+    else if (estJourRegles(d)) lignes.push(['Règles', 'Prévues (estimation du cycle)']);
+    if (estJourOvulation(d)) lignes.push(['Ovulation', 'Fenêtre estimée']);
+    if (typeof entree.douleur === 'number') lignes.push(['Douleur', entree.douleur + '/10']);
+    if (typeof entree.sommeilDuree === 'number') lignes.push(['Durée sommeil', (entree.sommeilDuree >= 13 ? '13 h+' : entree.sommeilDuree + ' h')]);
+
+    LIBELLES_FICHE.forEach(([champ, libelle]) => {
+      if (champ === 'flux') return; // déjà dans la ligne Règles
+      let v = entree[champ];
+      if (v == null || (Array.isArray(v) && !v.length)) return;
+      if (Array.isArray(v)) v = v.join(', ');
+      lignes.push([libelle, v]);
+    });
+
+    if (!lignes.length){
+      contenu.innerHTML = '<div class="fiche-vide">Aucune donnée enregistrée ce jour-là.</div>';
+    } else {
+      lignes.forEach(([etiquette, valeur]) => {
+        const ligne = document.createElement('div');
+        ligne.className = 'fiche-ligne';
+        const e = document.createElement('span');
+        e.className = 'etiquette';
+        e.textContent = etiquette;
+        const val = document.createElement('span');
+        val.textContent = valeur;
+        ligne.append(e, val);
+        contenu.appendChild(ligne);
+      });
+    }
+
+    // boutons de retrait des règles
+    document.getElementById('fiche-retirer-regles').hidden = !entree.regles;
+    document.getElementById('fiche-annuler-debut').hidden = (cle !== cycle.lastPeriodStart);
+
+    document.getElementById('voile').classList.add('visible');
+    document.getElementById('fiche-jour').classList.add('visible');
+  }
+
+  function fermerFiche(){
+    document.getElementById('voile').classList.remove('visible');
+    document.getElementById('fiche-jour').classList.remove('visible');
+  }
+  document.getElementById('voile').addEventListener('click', fermerFiche);
+  document.getElementById('fiche-fermer').addEventListener('click', fermerFiche);
+
+  document.getElementById('fiche-bilan').addEventListener('click', () => {
+    window.location.href = 'bilan.html?date=' + cleDate(dateFiche);
+  });
+
+  // retirer les règles d'UN jour (erreur de saisie ponctuelle)
+  document.getElementById('fiche-retirer-regles').addEventListener('click', async () => {
+    if (!uidCourant || !dateFiche) return;
+    const cle = cleDate(dateFiche);
+    await db.collection('users').doc(uidCourant).collection('journal').doc(cle)
+      .set({ regles: false, flux: firebase.firestore.FieldValue.delete() }, { merge: true });
+    if (journal[cle]) { journal[cle].regles = false; delete journal[cle].flux; }
+    fermerFiche();
+    toutAfficher();
+  });
+
+  // annuler tout le départ de règles déclenché par erreur
+  document.getElementById('fiche-annuler-debut').addEventListener('click', async () => {
+    if (!uidCourant || !cycle.lastPeriodStart) return;
+    if (!confirm('Annuler ce début de règles ? Les jours marqués seront retirés et les prédictions recalculées.')) return;
+    const debut = new Date(cycle.lastPeriodStart);
+    const duree = cycle.periodLength || 5;
+    const lot = db.batch();
+    for (let i = 0; i < duree; i++){
+      const d = new Date(debut); d.setDate(d.getDate() + i);
+      const cle = cleDate(d);
+      lot.set(db.collection('users').doc(uidCourant).collection('journal').doc(cle),
+              { regles: false }, { merge: true });
+      if (journal[cle]) journal[cle].regles = false;
+    }
+    lot.set(db.collection('users').doc(uidCourant),
+            { lastPeriodStart: firebase.firestore.FieldValue.delete() }, { merge: true });
+    await lot.commit();
+    cycle.lastPeriodStart = null;
+    fermerFiche();
+    toutAfficher();
   });
 
   function toutAfficher(){ afficherAnneau(); afficherCalendrier(); }
