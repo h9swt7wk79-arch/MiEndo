@@ -342,9 +342,8 @@
        douleur : 0 à 10                 (EVA douleur)
      ========================================================== */
 
-  // Données de démonstration tant que Firestore est vide,
-  // pour pouvoir vérifier le visuel.
-  let cycle = { lastPeriodStart: "2026-06-02", cycleLength: 28, periodLength: 5 };
+  // État neutre tant que l'utilisatrice n'a pas déclaré de règles
+  let cycle = { lastPeriodStart: null, cycleLength: 28, periodLength: 5 };
   let journal = {}; // { "2026-06-10": {bilan:true, douleur:6, regles:false}, ... }
 
   let moisAffiche = new Date(); // mois courant du calendrier
@@ -355,7 +354,7 @@
     uidCourant = user.uid;
     try {
       const doc = await db.collection('users').doc(user.uid).get();
-      if (doc.exists && doc.data().lastPeriodStart) cycle = { ...cycle, ...doc.data() };
+      if (doc.exists) cycle = { ...cycle, ...doc.data() };
 
       const snap = await db.collection('users').doc(user.uid).collection('journal').get();
       snap.forEach(d => journal[d.id] = d.data());
@@ -700,7 +699,7 @@
   });
 
   function toutAfficher(){ afficherAnneau(); afficherCalendrier(); }
-  // premier rendu immédiat avec les données de démo (avant la réponse Firestore)
+  // premier rendu immédiat (état neutre, le temps que Firestore réponde)
   toutAfficher();
 </script>
 </body>
