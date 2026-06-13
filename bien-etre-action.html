@@ -79,6 +79,46 @@
     font-size:12.5px;line-height:1.6;
   }
 
+  /* recettes illustrées */
+  .carte-recette{padding:0;overflow:hidden;}
+  .photo-recette{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#FAFAFA;}
+  .recette-corps{padding:14px 16px;}
+
+  /* lecteur de yoga */
+  .seances-grille{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .seance-btn{
+    color:var(--noir);
+    border:1px solid var(--gris-bordure);background:var(--blanc);
+    border-radius:12px;padding:12px 10px;
+    font:inherit;font-size:13px;font-weight:600;
+    cursor:pointer;text-align:left;
+  }
+  .seance-btn span{display:block;font-size:11.5px;font-weight:400;color:var(--gris-texte);margin-top:3px;}
+  .seance-btn:active{background:var(--rose-pale);}
+  .lecteur-tete{display:flex;justify-content:space-between;font-size:12.5px;color:var(--gris-texte);font-weight:600;margin-bottom:6px;}
+  .posture-zone{display:flex;align-items:center;justify-content:center;padding:14px 0;}
+  .posture-cercle{
+    width:120px;height:120px;border-radius:50%;
+    background:var(--rose-pale);border:2.5px solid var(--rose);
+    display:flex;align-items:center;justify-content:center;
+    font-size:30px;font-weight:700;color:var(--noir);
+  }
+  .lecteur-barres{height:5px;background:#F0F0F0;border-radius:99px;overflow:hidden;margin:6px 0 12px;}
+  .lecteur-progres{height:100%;background:var(--rose);width:0%;transition:width .25s linear;}
+  .lecteur-controles{display:flex;gap:8px;align-items:center;}
+  .lect-btn{
+    height:46px;border:1px solid var(--gris-bordure);background:var(--blanc);
+    border-radius:12px;font:inherit;font-weight:600;cursor:pointer;color:var(--noir);
+  }
+  .lect-btn:not(.lect-btn-principal){width:46px;font-size:20px;flex-shrink:0;}
+  .lect-btn-principal{flex:1;background:var(--noir);color:var(--blanc);border:none;font-size:14px;}
+  .lect-btn:active{opacity:.85;}
+  .btn-quitter{
+    width:100%;background:none;border:none;cursor:pointer;
+    color:var(--gris-texte);font:inherit;font-size:12.5px;
+    text-decoration:underline;margin-top:10px;
+  }
+
   /* respiration */
   .cercle-zone{height:170px;display:flex;align-items:center;justify-content:center;}
   .cercle{
@@ -132,48 +172,47 @@
   <!-- YOGA -->
   <div class="rubrique visible" id="yoga">
     <div class="carte">
-      <h2>🩸 Pendant les règles — doux et au sol</h2>
-      <div class="duree">~10 minutes</div>
-      <ol>
-        <li>Posture de l'enfant (Balasana) : genoux écartés, front au sol, bras relâchés — 1 minute, respiration lente.</li>
-        <li>Torsion couchée douce : allongée sur le dos, genoux pliés basculés d'un côté puis l'autre — 30 secondes par côté.</li>
-        <li>Jambes au mur (Viparita Karani) : allongée, jambes posées contre un mur ou une chaise — 3 minutes, excellent pour soulager la lourdeur pelvienne.</li>
-        <li>Respiration abdominale : main sur le ventre, gonfler à l'inspiration, rentrer à l'expiration — 2 minutes.</li>
-      </ol>
+      <h2>Choisis ta séance</h2>
+      <div class="duree">Lance le lecteur : chaque posture a son minuteur</div>
+      <div class="seances-grille" id="seances-grille">
+        <button class="seance-btn" data-s="regles">🩸 Pendant les règles<span>~9 min · au sol</span></button>
+        <button class="seance-btn" data-s="folliculaire">🌱 Folliculaire<span>~13 min · dynamique</span></button>
+        <button class="seance-btn" data-s="ovulatoire">⭐ Ovulatoire<span>~9 min · hanches</span></button>
+        <button class="seance-btn" data-s="luteale">🌾 Lutéale<span>~14 min · apaisant</span></button>
+      </div>
+    </div>
+
+    <div class="carte" id="lecteur" hidden>
+      <div class="lecteur-tete">
+        <span id="lecteur-titre">—</span>
+        <span id="lecteur-position">1/4</span>
+      </div>
+      <div class="posture-zone">
+        <div class="posture-cercle" id="posture-cercle">
+          <span id="posture-minuteur">60</span>
+        </div>
+      </div>
+      <h3 id="posture-nom" style="text-align:center;font-size:15px;font-weight:700;margin:10px 0 4px;">—</h3>
+      <p id="posture-desc" style="text-align:center;color:var(--gris-texte);font-size:12.5px;min-height:36px;">—</p>
+      <div class="lecteur-barres">
+        <div class="lecteur-progres" id="lecteur-progres"></div>
+      </div>
+      <div class="lecteur-controles">
+        <button class="lect-btn" id="btn-precedent" aria-label="Posture précédente">‹</button>
+        <button class="lect-btn lect-btn-principal" id="btn-pause">Pause</button>
+        <button class="lect-btn" id="btn-suivant" aria-label="Posture suivante">›</button>
+      </div>
+      <button class="btn-quitter" id="btn-quitter-seance">Quitter la séance</button>
+    </div>
+
+    <div class="carte" id="fin-seance" hidden style="text-align:center;">
+      <h2 style="margin-bottom:6px;">Séance terminée 💗</h2>
+      <p style="font-size:13px;color:var(--gris-texte);">Belle écoute de ton corps aujourd'hui.</p>
+      <button class="btn btn-noir" id="btn-rejouer">Refaire cette séance</button>
     </div>
 
     <div class="carte">
-      <h2>🌱 Phase folliculaire — dynamique</h2>
-      <div class="duree">~15 minutes</div>
-      <ol>
-        <li>Salutation au soleil (version douce), 3 à 5 cycles, à ton rythme.</li>
-        <li>Posture du chat-vache (Marjaryasana/Bitilasana), 8 à 10 respirations — mobilise la colonne et le bassin.</li>
-        <li>Fente basse (Anjaneyasana) chaque côté, 30 secondes — étire les hanches.</li>
-        <li>Posture de l'arbre (Vrksasana) chaque côté — équilibre et concentration.</li>
-      </ol>
-    </div>
-
-    <div class="carte">
-      <h2>⭐ Phase ovulatoire — ouverture des hanches</h2>
-      <div class="duree">~12 minutes</div>
-      <ol>
-        <li>Posture du papillon (Baddha Konasana), assise, dos droit — 2 minutes.</li>
-        <li>Pigeon doux (variante allongée si besoin) chaque côté — 1 minute par côté.</li>
-        <li>Torsion assise chaque côté — 30 secondes par côté.</li>
-        <li>Si douleur d'ovulation : privilégie la posture de l'enfant et la respiration plutôt que les étirements profonds.</li>
-      </ol>
-    </div>
-
-    <div class="carte">
-      <h2>🌾 Phase lutéale — apaisant</h2>
-      <div class="duree">~12 minutes</div>
-      <ol>
-        <li>Posture du chat-vache lent, 10 respirations.</li>
-        <li>Torsion douce assise chaque côté.</li>
-        <li>Jambes au mur, 5 minutes — particulièrement utile contre la rétention d'eau et les jambes lourdes.</li>
-        <li>Savasana (relaxation finale), 3 minutes, avec une couverture sur le ventre si tu as froid ou des crampes naissantes.</li>
-      </ol>
-      <p style="font-size:12.5px;color:var(--gris-texte);margin-top:8px;">Les jours de douleur marquée, remplace toute séance par la posture de l'enfant et la respiration : le repos est un choix valable, pas un renoncement.</p>
+      <p style="font-size:12.5px;color:var(--gris-texte);">Les jours de douleur marquée, remplace toute séance par la posture de l'enfant et la respiration (onglet Respiration) : le repos est un choix valable, pas un renoncement.</p>
     </div>
   </div>
 
@@ -187,58 +226,144 @@
     </div>
 
     <div class="recette visible" id="rec-petit_dejeuner">
-      <div class="carte">
-        <h2>Porridge curcuma-gingembre-myrtilles</h2>
-        <div class="duree">10 min · anti-inflammatoire, riche en oméga-3</div>
-        <div class="ingredients">Flocons d'avoine, lait végétal (amande/avoine), 1 c. à café de curcuma, 1 cm de gingembre frais râpé, 1 c. à soupe de graines de lin moulues, myrtilles, 1 c. à café de miel ou sirop d'érable.</div>
-        <ol>
-          <li>Faire chauffer le lait végétal avec les flocons d'avoine 5 minutes à feu doux.</li>
-          <li>Ajouter le curcuma et le gingembre râpé, mélanger.</li>
-          <li>Verser dans un bol, ajouter les graines de lin et les myrtilles, sucrer légèrement.</li>
-        </ol>
-        <p style="font-size:12px;color:var(--gris-texte);margin-top:6px;">Le curcuma est plus assimilable accompagné d'une pointe de poivre noir et d'un corps gras (présent dans le lait végétal).</p>
+      <div class="carte carte-recette">
+        <img class="photo-recette" src="assets/recettes/porridge.svg" alt="Bol de porridge au curcuma, gingembre et myrtilles">
+        <div class="recette-corps">
+          <h2>Porridge curcuma-gingembre-myrtilles</h2>
+          <div class="duree">10 min · anti-inflammatoire, riche en oméga-3</div>
+          <div class="ingredients">Flocons d'avoine, lait végétal (amande/avoine), 1 c. à café de curcuma, 1 cm de gingembre frais râpé, 1 c. à soupe de graines de lin moulues, myrtilles, 1 c. à café de miel ou sirop d'érable.</div>
+          <ol>
+            <li>Faire chauffer le lait végétal avec les flocons d'avoine 5 minutes à feu doux.</li>
+            <li>Ajouter le curcuma et le gingembre râpé, mélanger.</li>
+            <li>Verser dans un bol, ajouter les graines de lin et les myrtilles, sucrer légèrement.</li>
+          </ol>
+          <p style="font-size:12px;color:var(--gris-texte);margin-top:6px;">Le curcuma est plus assimilable accompagné d'une pointe de poivre noir et d'un corps gras (présent dans le lait végétal).</p>
+        </div>
+      </div>
+
+      <div class="carte carte-recette">
+        <img class="photo-recette" src="assets/recettes/smoothie-bowl.svg" alt="Smoothie bowl ananas et curcuma">
+        <div class="recette-corps">
+          <h2>Smoothie bowl ananas-curcuma</h2>
+          <div class="duree">5 min, sans cuisson · vitamine C, anti-inflammatoire</div>
+          <div class="ingredients">Ananas surgelé, banane, 1 c. à café de curcuma, lait de coco, graines de chia, fruits rouges pour le topping.</div>
+          <ol>
+            <li>Mixer l'ananas, la banane, le curcuma et un peu de lait de coco jusqu'à consistance épaisse.</li>
+            <li>Verser dans un bol, parsemer de graines de chia et de fruits rouges.</li>
+          </ol>
+          <p style="font-size:12px;color:var(--gris-texte);margin-top:6px;">Version fraîche et rapide pour les matins de phase folliculaire ou ovulatoire.</p>
+        </div>
+      </div>
+
+      <div class="carte carte-recette">
+        <img class="photo-recette" src="assets/recettes/toast-avocat.svg" alt="Toast à l'avocat et au saumon fumé">
+        <div class="recette-corps">
+          <h2>Toast avocat &amp; saumon fumé</h2>
+          <div class="duree">8 min · oméga-3, magnésium</div>
+          <div class="ingredients">Pain complet ou sans gluten, avocat, saumon fumé, jus de citron, graines de sésame, poivre.</div>
+          <ol>
+            <li>Écraser l'avocat à la fourchette avec le jus de citron et le poivre.</li>
+            <li>Tartiner sur le pain toasté, disposer le saumon fumé par-dessus.</li>
+            <li>Parsemer de graines de sésame.</li>
+          </ol>
+          <p style="font-size:12px;color:var(--gris-texte);margin-top:6px;">Bonne option salée riche en bons gras pour les jours où le sucré ne passe pas.</p>
+        </div>
       </div>
     </div>
 
     <div class="recette" id="rec-dejeuner">
-      <div class="carte">
-        <h2>Bowl saumon, quinoa &amp; légumes verts</h2>
-        <div class="duree">20 min · oméga-3, fibres, faible en FODMAPs</div>
-        <div class="ingredients">Quinoa, pavé de saumon, épinards ou courgette, carotte, huile d'olive, jus de citron, graines de courge.</div>
-        <ol>
-          <li>Cuire le quinoa selon les instructions du paquet.</li>
-          <li>Cuire le saumon à la poêle ou au four (12 min, 180 °C).</li>
-          <li>Faire revenir les épinards et la courgette en dés à l'huile d'olive.</li>
-          <li>Assembler dans un bol, arroser de citron, parsemer de graines de courge.</li>
-        </ol>
+      <div class="carte carte-recette">
+        <img class="photo-recette" src="assets/recettes/saumon-quinoa.svg" alt="Bowl de saumon, quinoa et légumes verts">
+        <div class="recette-corps">
+          <h2>Bowl saumon, quinoa &amp; légumes verts</h2>
+          <div class="duree">20 min · oméga-3, fibres, faible en FODMAPs</div>
+          <div class="ingredients">Quinoa, pavé de saumon, épinards ou courgette, carotte, huile d'olive, jus de citron, graines de courge.</div>
+          <ol>
+            <li>Cuire le quinoa selon les instructions du paquet.</li>
+            <li>Cuire le saumon à la poêle ou au four (12 min, 180 °C).</li>
+            <li>Faire revenir les épinards et la courgette en dés à l'huile d'olive.</li>
+            <li>Assembler dans un bol, arroser de citron, parsemer de graines de courge.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="carte carte-recette">
+        <img class="photo-recette" src="assets/recettes/soupe-miso.svg" alt="Soupe miso au gingembre et tofu">
+        <div class="recette-corps">
+          <h2>Soupe miso, gingembre &amp; tofu</h2>
+          <div class="duree">15 min · douce, facile à digérer</div>
+          <div class="ingredients">Pâte miso, bouillon de légumes, tofu ferme en dés, gingembre frais, champignons shiitake, oignon nouveau, algue wakamé (optionnel).</div>
+          <ol>
+            <li>Faire chauffer le bouillon avec le gingembre râpé et les shiitake 5 minutes.</li>
+            <li>Hors du feu, diluer la pâte miso dans un peu de bouillon chaud puis l'ajouter (ne pas faire bouillir le miso).</li>
+            <li>Ajouter le tofu et l'oignon nouveau, servir chaud.</li>
+          </ol>
+          <p style="font-size:12px;color:var(--gris-texte);margin-top:6px;">Idéale les jours d'endo-belly : chaude, peu de FODMAPs, et réconfortante.</p>
+        </div>
       </div>
     </div>
 
     <div class="recette" id="rec-en_cas">
-      <div class="carte">
-        <h2>Boules d'énergie chocolat-noisette</h2>
-        <div class="duree">10 min, sans cuisson · magnésium</div>
-        <div class="ingredients">Dattes dénoyautées, noisettes, cacao non sucré, une pincée de sel, 1 c. à soupe d'huile de coco.</div>
-        <ol>
-          <li>Mixer les dattes et les noisettes jusqu'à obtenir une pâte collante.</li>
-          <li>Ajouter le cacao, le sel et l'huile de coco, mixer à nouveau.</li>
-          <li>Former des boules, réfrigérer 30 minutes.</li>
-        </ol>
-        <p style="font-size:12px;color:var(--gris-texte);margin-top:6px;">Pratique à garder sous la main en phase lutéale pour les fringales sucrées.</p>
+      <div class="carte carte-recette">
+        <img class="photo-recette" src="assets/recettes/boules-energie.svg" alt="Boules d'énergie chocolat et noisette">
+        <div class="recette-corps">
+          <h2>Boules d'énergie chocolat-noisette</h2>
+          <div class="duree">10 min, sans cuisson · magnésium</div>
+          <div class="ingredients">Dattes dénoyautées, noisettes, cacao non sucré, une pincée de sel, 1 c. à soupe d'huile de coco.</div>
+          <ol>
+            <li>Mixer les dattes et les noisettes jusqu'à obtenir une pâte collante.</li>
+            <li>Ajouter le cacao, le sel et l'huile de coco, mixer à nouveau.</li>
+            <li>Former des boules, réfrigérer 30 minutes.</li>
+          </ol>
+          <p style="font-size:12px;color:var(--gris-texte);margin-top:6px;">Pratique à garder sous la main en phase lutéale pour les fringales sucrées.</p>
+        </div>
+      </div>
+
+      <div class="carte carte-recette">
+        <img class="photo-recette" src="assets/recettes/tisane.svg" alt="Tisane gingembre et camomille">
+        <div class="recette-corps">
+          <h2>Tisane gingembre-camomille au miel</h2>
+          <div class="duree">5 min · antalgique doux, relaxant</div>
+          <div class="ingredients">Quelques tranches de gingembre frais, fleurs de camomille (ou sachet), 1 c. à café de miel, eau chaude.</div>
+          <ol>
+            <li>Faire infuser le gingembre et la camomille dans l'eau chaude 5 à 8 minutes.</li>
+            <li>Filtrer, ajouter le miel.</li>
+          </ol>
+          <p style="font-size:12px;color:var(--gris-texte);margin-top:6px;">À garder à portée de main pendant les règles, en complément de la bouillotte.</p>
+        </div>
       </div>
     </div>
 
     <div class="recette" id="rec-diner">
-      <div class="carte">
-        <h2>Curry de lentilles corail au lait de coco</h2>
-        <div class="duree">25 min · anti-inflammatoire, riche en fer</div>
-        <div class="ingredients">Lentilles corail, lait de coco, curcuma, gingembre, carotte, épinards, riz basmati en accompagnement.</div>
-        <ol>
-          <li>Faire revenir le gingembre râpé, ajouter les lentilles, le lait de coco et le curcuma.</li>
-          <li>Ajouter la carotte en dés, couvrir et cuire 15 minutes à feu doux.</li>
-          <li>Ajouter les épinards en fin de cuisson, servir avec le riz basmati.</li>
-        </ol>
-        <p style="font-size:12px;color:var(--gris-texte);margin-top:6px;">Plat doux pour les jours d'endo-belly : facile à digérer, chaud et réconfortant.</p>
+      <div class="carte carte-recette">
+        <img class="photo-recette" src="assets/recettes/curry-lentilles.svg" alt="Curry de lentilles corail au lait de coco">
+        <div class="recette-corps">
+          <h2>Curry de lentilles corail au lait de coco</h2>
+          <div class="duree">25 min · anti-inflammatoire, riche en fer</div>
+          <div class="ingredients">Lentilles corail, lait de coco, curcuma, gingembre, carotte, épinards, riz basmati en accompagnement.</div>
+          <ol>
+            <li>Faire revenir le gingembre râpé, ajouter les lentilles, le lait de coco et le curcuma.</li>
+            <li>Ajouter la carotte en dés, couvrir et cuire 15 minutes à feu doux.</li>
+            <li>Ajouter les épinards en fin de cuisson, servir avec le riz basmati.</li>
+          </ol>
+          <p style="font-size:12px;color:var(--gris-texte);margin-top:6px;">Plat doux pour les jours d'endo-belly : facile à digérer, chaud et réconfortant.</p>
+        </div>
+      </div>
+
+      <div class="carte carte-recette">
+        <img class="photo-recette" src="assets/recettes/soupe-miso.svg" alt="Soupe miso au gingembre, version dîner">
+        <div class="recette-corps">
+          <h2>Bol de riz, légumes rôtis &amp; tahini-citron</h2>
+          <div class="duree">25 min · fibres, magnésium</div>
+          <div class="ingredients">Riz basmati ou complet, courgette, carotte, brocoli, huile d'olive, tahini, jus de citron, graines de sésame.</div>
+          <ol>
+            <li>Rôtir les légumes coupés en morceaux à l'huile d'olive, 20 minutes à 200 °C.</li>
+            <li>Cuire le riz en parallèle.</li>
+            <li>Mélanger 1 c. à soupe de tahini avec le jus de citron et un peu d'eau pour la sauce.</li>
+            <li>Assembler et napper de sauce, parsemer de graines de sésame.</li>
+          </ol>
+          <p style="font-size:12px;color:var(--gris-texte);margin-top:6px;">Léger le soir, riche en fibres pour un bon transit.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -273,6 +398,134 @@
 </div>
 
 <script>
+  /* ---------- lecteur de séances de yoga ---------- */
+  const SEANCES = {
+    regles: {
+      titre: '🩸 Pendant les règles',
+      postures: [
+        { nom: "Posture de l'enfant", desc: "Genoux écartés, front au sol, bras relâchés. Respire lentement.", duree: 60 },
+        { nom: 'Torsion couchée — côté droit', desc: 'Allongée sur le dos, genoux pliés basculés vers la droite.', duree: 30 },
+        { nom: 'Torsion couchée — côté gauche', desc: 'Même posture, bascule les genoux vers la gauche.', duree: 30 },
+        { nom: 'Jambes au mur', desc: 'Allongée, jambes posées contre un mur ou une chaise. Soulage la lourdeur pelvienne.', duree: 180 },
+        { nom: 'Respiration abdominale', desc: 'Main sur le ventre : gonfle à l\u2019inspiration, rentre à l\u2019expiration.', duree: 120 }
+      ]
+    },
+    folliculaire: {
+      titre: '🌱 Phase folliculaire',
+      postures: [
+        { nom: 'Salutation au soleil (douce)', desc: 'Un cycle complet, à ton rythme, sans forcer.', duree: 90 },
+        { nom: 'Chat-vache', desc: 'Mobilise la colonne et le bassin au rythme de ta respiration.', duree: 60 },
+        { nom: 'Fente basse — côté droit', desc: 'Genou arrière au sol, étire la hanche droite.', duree: 30 },
+        { nom: 'Fente basse — côté gauche', desc: 'Même posture, côté gauche.', duree: 30 },
+        { nom: "Posture de l'arbre — côté droit", desc: 'Équilibre sur la jambe droite, regard fixe.', duree: 30 },
+        { nom: "Posture de l'arbre — côté gauche", desc: 'Équilibre sur la jambe gauche.', duree: 30 },
+        { nom: 'Respiration libre', desc: 'Quelques respirations profondes pour clore la séance.', duree: 60 }
+      ]
+    },
+    ovulatoire: {
+      titre: '⭐ Phase ovulatoire',
+      postures: [
+        { nom: 'Posture du papillon', desc: 'Assise, dos droit, plantes de pieds jointes. Ouvre doucement les hanches.', duree: 120 },
+        { nom: 'Pigeon doux — côté droit', desc: 'Variante allongée possible si besoin.', duree: 60 },
+        { nom: 'Pigeon doux — côté gauche', desc: 'Même posture, côté gauche.', duree: 60 },
+        { nom: 'Torsion assise — côté droit', desc: 'Dos droit, torsion douce vers la droite.', duree: 30 },
+        { nom: 'Torsion assise — côté gauche', desc: 'Même posture, côté gauche.', duree: 30 },
+        { nom: "Posture de l'enfant", desc: 'Si douleur d\u2019ovulation, privilégie cette posture et la respiration plutôt que les étirements profonds.', duree: 60 }
+      ]
+    },
+    luteale: {
+      titre: '🌾 Phase lutéale',
+      postures: [
+        { nom: 'Chat-vache lent', desc: '10 respirations, mouvement très doux.', duree: 60 },
+        { nom: 'Torsion douce assise — côté droit', desc: 'Sans forcer, juste accompagner la respiration.', duree: 30 },
+        { nom: 'Torsion douce assise — côté gauche', desc: 'Même posture, côté gauche.', duree: 30 },
+        { nom: 'Jambes au mur', desc: 'Très utile contre la rétention d\u2019eau et les jambes lourdes.', duree: 300 },
+        { nom: 'Savasana', desc: 'Relaxation finale. Couverture sur le ventre si besoin de chaleur.', duree: 180 }
+      ]
+    }
+  };
+
+  let seanceActuelle = null, indexPosture = 0, tempsRestant = 0, minuteurSeance = null, enPause = false;
+
+  function cleSeance(s){
+    return s.postures.reduce((tot,p)=>tot+p.duree,0);
+  }
+  function formaterTemps(s){
+    const m = Math.floor(s/60), sec = s%60;
+    return m + ':' + String(sec).padStart(2,'0');
+  }
+
+  document.getElementById('seances-grille').addEventListener('click', e => {
+    const b = e.target.closest('.seance-btn'); if (!b) return;
+    demarrerSeance(SEANCES[b.dataset.s]);
+  });
+
+  function demarrerSeance(seance){
+    seanceActuelle = seance;
+    indexPosture = 0;
+    enPause = false;
+    document.getElementById('seances-grille').parentElement.hidden = true;
+    document.getElementById('fin-seance').hidden = true;
+    document.getElementById('lecteur').hidden = false;
+    document.getElementById('lecteur-titre').textContent = seance.titre;
+    chargerPosture();
+  }
+
+  function chargerPosture(){
+    const p = seanceActuelle.postures[indexPosture];
+    tempsRestant = p.duree;
+    document.getElementById('posture-nom').textContent = p.nom;
+    document.getElementById('posture-desc').textContent = p.desc;
+    document.getElementById('lecteur-position').textContent = (indexPosture+1) + '/' + seanceActuelle.postures.length;
+    document.getElementById('btn-precedent').disabled = indexPosture === 0;
+    document.getElementById('btn-pause').textContent = 'Pause';
+    enPause = false;
+    afficherTemps();
+    clearInterval(minuteurSeance);
+    minuteurSeance = setInterval(tic, 1000);
+  }
+
+  function afficherTemps(){
+    document.getElementById('posture-minuteur').textContent = formaterTemps(tempsRestant);
+    const p = seanceActuelle.postures[indexPosture];
+    document.getElementById('lecteur-progres').style.width = (100 * (1 - tempsRestant/p.duree)) + '%';
+  }
+
+  function tic(){
+    if (enPause) return;
+    tempsRestant--;
+    afficherTemps();
+    if (tempsRestant <= 0) postureSuivante();
+  }
+
+  function postureSuivante(){
+    if (indexPosture < seanceActuelle.postures.length - 1){
+      indexPosture++;
+      chargerPosture();
+    } else {
+      clearInterval(minuteurSeance);
+      document.getElementById('lecteur').hidden = true;
+      document.getElementById('fin-seance').hidden = false;
+    }
+  }
+  function posturePrecedente(){
+    if (indexPosture > 0){ indexPosture--; chargerPosture(); }
+  }
+
+  document.getElementById('btn-suivant').addEventListener('click', () => { clearInterval(minuteurSeance); postureSuivante(); });
+  document.getElementById('btn-precedent').addEventListener('click', () => { clearInterval(minuteurSeance); posturePrecedente(); });
+  document.getElementById('btn-pause').addEventListener('click', e => {
+    enPause = !enPause;
+    e.target.textContent = enPause ? 'Reprendre' : 'Pause';
+  });
+  document.getElementById('btn-quitter-seance').addEventListener('click', () => {
+    clearInterval(minuteurSeance);
+    document.getElementById('lecteur').hidden = true;
+    document.getElementById('fin-seance').hidden = true;
+    document.getElementById('seances-grille').parentElement.hidden = false;
+  });
+  document.getElementById('btn-rejouer').addEventListener('click', () => demarrerSeance(seanceActuelle));
+
   // onglets principaux
   document.getElementById('onglets').addEventListener('click', e => {
     const b = e.target.closest('.onglet'); if (!b) return;
@@ -281,6 +534,7 @@
     b.classList.add('actif');
     document.getElementById(b.dataset.r).classList.add('visible');
     if (b.dataset.r !== 'respiration') arreterSon();
+    if (b.dataset.r !== 'yoga') clearInterval(minuteurSeance);
   });
 
   // sous-onglets recettes
