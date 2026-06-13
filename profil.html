@@ -320,10 +320,7 @@
       <h2>Journal des 31 derniers jours</h2>
       <table><tr><th>Date</th><th>Observations</th></tr>${lignes || '<tr><td colspan=2>Aucune donnée</td></tr>'}</table>
       <p class="meta">Document destiné à faciliter l'échange avec l'équipe de soins. Données déclaratives saisies par la patiente.</p>
-      <script>window.print();<\/script><script>
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-</script>
-</body></html>`);
+      <script>window.print();<\/script></body></html>`);
     f.document.close();
   });
 
@@ -371,6 +368,86 @@
     const t = [...liste].sort((a,b) => a-b);
     return t[Math.floor(t.length/2)];
   }
+
+  // Cherche les événements quotidiens de Flo (symptômes, humeurs, flux…)
+  // Forme typique : { date: "2025-08-09…", category: "Symptom", subcategory: "cramps" }
+  function trouverEvenementsFlo(obj, profondeur = 0){
+    if (!obj || typeof obj !== 'object' || profondeur > 6) return null;
+    if (Array.isArray(obj)){
+      if (obj.length && obj[0] && typeof obj[0] === 'object' &&
+          ('date' in obj[0]) && ('category' in obj[0] || 'subcategory' in obj[0] || 'event' in obj[0]))
+        return obj;
+      for (const el of obj){ const r = trouverEvenementsFlo(el, profondeur + 1); if (r) return r; }
+      return null;
+    }
+    for (const [k, v] of Object.entries(obj)){
+      if (Array.isArray(v) && v.length && v[0] && typeof v[0] === 'object' &&
+          ('date' in v[0]) && ('category' in v[0] || 'subcategory' in v[0] || 'event' in v[0]))
+        return v;
+      const r = trouverEvenementsFlo(v, profondeur + 1); if (r) return r;
+    }
+    return null;
+  }
+
+  // identifiants Flo (anglais) → champs MiEndo
+  const MAPPAGE_FLO = {
+    // douleurs
+    cramps:           ['douleurs', 'Crampes abdominales'],
+    headache:         ['douleurs', 'Migraines'],
+    migraine:         ['douleurs', 'Migraines'],
+    backache:         ['douleurs', 'Douleurs dos'],
+    tender_breasts:   ['douleurs', 'Douleurs aux seins'],
+    ovulation_pain:   ['douleurs', 'Douleurs pelviennes'],
+    // état général
+    fatigue:          ['etatGeneral', 'Fatigue'],
+    dizziness:        ['etatGeneral', 'Vertiges'],
+    brain_fog:        ['etatGeneral', 'Brouillard mental'],
+    hot_flashes:      ['etatGeneral', 'Bouffées de chaleur'],
+    // émotions
+    mood_swings:      ['etatEmotionnel', "Sautes d'humeur"],
+    irritated:        ['etatEmotionnel', 'Irritabilité'],
+    irritability:     ['etatEmotionnel', 'Irritabilité'],
+    sad:              ['etatEmotionnel', 'Déprimée'],
+    depressed:        ['etatEmotionnel', 'Déprimée'],
+    happy:            ['etatEmotionnel', 'Heureuse'],
+    energetic:        ['etatEmotionnel', 'Motivée'],
+    calm:             ['etatEmotionnel', 'Enjouée'],
+    // digestion & transit
+    bloating:         ['digestion', 'Endo-belly'],
+    nausea:           ['digestion', 'Nausée'],
+    vomiting:         ['digestion', 'Vomissements'],
+    constipation:     ['transit', 'Constipation'],
+    diarrhea:         ['transit', 'Diarrhée'],
+    // fringales
+    cravings:         ['fringales', 'Sucré'],
+    sweet_cravings:   ['fringales', 'Sucré'],
+    salty_cravings:   ['fringales', 'Salé'],
+    // peau & cheveux
+    acne:             ['peau', 'Acné'],
+    // sommeil
+    insomnia:         ['sommeilSymptomes', 'Insomnie'],
+    // pertes (fluid)
+    creamy:           ['pertes', 'Crémeuses'],
+    egg_white:        ['pertes', "Blanc d'œuf"],
+    watery:           ['pertes', 'Aqueuses'],
+    sticky:           ['pertes', 'Pertes normales'],
+    spotting:         ['pertes', 'Spotting'],
+    unusual:          ['pertes', 'Odorantes'],
+    // rapports
+    had_sex:          ['rapport', 'Oui'],
+    protected_sex:    ['rapport', 'Oui'],
+    unprotected_sex:  ['rapport', 'Oui'],
+    high_sex_drive:   ['libido', 'Élevée'],
+    low_sex_drive:    ['libido', 'Basse'],
+    // sport
+    running:          ['sport', 'Course à pied'],
+    yoga:             ['sport', 'Yoga'],
+    swimming:         ['sport', 'Natation'],
+    cycling:          ['sport', 'Vélo'],
+    gym:              ['sport', 'Musculation'],
+    walking:          ['sport', 'Marche']
+  };
+  const CHAMPS_LISTE = ['douleurs','etatGeneral','etatEmotionnel','digestion','transit','fringales','peau','sommeilSymptomes','pertes','sport'];
 
   async function importerFlo(donnees){
     const cycles = trouverCyclesFlo(donnees);
@@ -438,7 +515,49 @@
       }
       await db.collection('users').doc(uid).set(maj, { merge: true });
     }
-    return { cycles: debuts.length, jours: joursImportes };
+
+    /* ---- symptômes et événements quotidiens Flo ---- */
+    let symptomesImportes = 0;
+    const evenements = trouverEvenementsFlo(donnees);
+    if (evenements){
+      // regrouper par date pour limiter les écritures
+      const parDate = {};
+      for (const ev of evenements){
+        if (!ev.date) continue;
+        const date = String(ev.date).slice(0, 10);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+        const id = String(ev.subcategory || ev.event || ev.category || '').toLowerCase().trim();
+        const cible = MAPPAGE_FLO[id];
+        const entree = parDate[date] = parDate[date] || {};
+        if (cible){
+          const [champ, valeur] = cible;
+          if (CHAMPS_LISTE.includes(champ)){
+            (entree[champ] = entree[champ] || new Set()).add(valeur);
+          } else {
+            entree[champ] = valeur; // champs simples : rapport, libido
+          }
+          symptomesImportes++;
+        } else if (id && !['period','menstruation'].includes(id)){
+          // non reconnu : on le conserve quand même, rien ne se perd
+          (entree.symptomesImportes = entree.symptomesImportes || new Set()).add(id);
+        }
+      }
+      let lot2 = db.batch(), n2 = 0;
+      for (const [date, entree] of Object.entries(parDate)){
+        const donneesJour = { importeDe: 'flo' };
+        for (const [champ, valeur] of Object.entries(entree)){
+          donneesJour[champ] = valeur instanceof Set
+            ? firebase.firestore.FieldValue.arrayUnion(...valeur)
+            : valeur;
+        }
+        lot2.set(db.collection('users').doc(uid).collection('journal').doc(date),
+                 donneesJour, { merge: true });
+        if (++n2 >= 400){ await lot2.commit(); lot2 = db.batch(); n2 = 0; }
+      }
+      if (n2) await lot2.commit();
+    }
+
+    return { cycles: debuts.length, jours: joursImportes, symptomes: symptomesImportes };
   }
 
   document.getElementById('fichier-import').addEventListener('change', async e => {
@@ -537,6 +656,9 @@
   document.getElementById('btn-deconnexion').addEventListener('click', async () => {
     await auth.signOut(); // la redirection est gérée par onAuthStateChanged
   });
+</script>
+<script>
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 </script>
 </body>
 </html>
