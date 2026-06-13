@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MiEndo — En action</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FD8BAB">
+<link rel="apple-touch-icon" href="assets/icone-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="MiEndo">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Katibeh&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --noir:#000;--blanc:#FFF;
+    --gris-texte:#828282;--gris-bordure:#E6E6E6;
+    --rose:#FD8BAB;--rose-pale:rgba(253,139,171,.34);
+    --radius:12px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:14px;color:var(--noir);
+    min-height:100dvh;padding-bottom:40px;
+    background:
+      linear-gradient(to bottom, rgba(255,255,255,.6), rgba(255,255,255,.8)),
+      url('assets/bg.jpg') center/cover no-repeat fixed;
+  }
+  .logo-haut{display:block;width:54px;margin:14px auto 4px;}
+  .entete{display:grid;grid-template-columns:36px 1fr 36px;align-items:center;padding:0 16px;margin-bottom:14px;}
+  .retour{background:none;border:none;cursor:pointer;font-size:22px;line-height:1;color:var(--noir);text-align:left;padding:4px;}
+  .titre-page{font-family:'Katibeh',serif;font-size:34px;font-weight:400;text-align:center;line-height:.9;margin-top:8px;}
+  .onglets{display:flex;gap:8px;overflow-x:auto;padding:0 16px 14px;}
+  .onglet{
+    flex-shrink:0;border:none;cursor:pointer;
+    font:inherit;font-weight:600;font-size:13px;
+    padding:8px 16px;border-radius:999px;
+    background:var(--blanc);color:var(--noir);
+    border:1px solid var(--gris-bordure);
+  }
+  .onglet.actif{background:var(--rose);color:var(--blanc);border-color:var(--rose);}
+  .contenu{padding:0 16px;max-width:560px;margin:0 auto;}
+  .rubrique{display:none;flex-direction:column;gap:14px;}
+  .rubrique.visible{display:flex;}
+  .carte{background:rgba(255,255,255,.8);border-radius:14px;padding:14px 16px;}
+  .carte h2{font-size:15px;font-weight:700;margin-bottom:4px;}
+  .carte .duree{color:var(--gris-texte);font-size:12px;margin-bottom:8px;}
+  .carte ol, .carte ul{list-style:none;}
+  .carte li{font-size:13.5px;line-height:1.6;padding:4px 0 4px 24px;position:relative;}
+  .carte ol li::before{
+    content:counter(li);counter-increment:li;
+    position:absolute;left:0;top:4px;
+    width:18px;height:18px;border-radius:50%;
+    background:var(--rose-pale);color:var(--noir);
+    font-size:11px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .carte ol{counter-reset:li;}
+  .carte ul li::before{content:'•';color:var(--rose);font-weight:700;position:absolute;left:6px;}
+
+  /* recettes */
+  .repas-onglets{display:flex;gap:6px;margin-bottom:4px;}
+  .repas-onglet{
+    flex:1;border:none;cursor:pointer;
+    font:inherit;font-weight:600;font-size:12px;
+    padding:8px 4px;border-radius:8px;
+    background:var(--blanc);color:var(--noir);
+    border:1px solid var(--gris-bordure);
+  }
+  .repas-onglet.actif{background:var(--rose);color:var(--blanc);border-color:var(--rose);}
+  .recette{display:none;}
+  .recette.visible{display:block;}
+  .ingredients{
+    background:#FAFAFA;border-radius:10px;
+    padding:10px 12px;margin:8px 0;
+    font-size:12.5px;line-height:1.6;
+  }
+
+  /* respiration */
+  .cercle-zone{height:170px;display:flex;align-items:center;justify-content:center;}
+  .cercle{
+    width:80px;height:80px;border-radius:50%;
+    background:var(--rose-pale);border:2.5px solid var(--rose);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:600;font-size:13px;color:var(--noir);
+    transition:transform 5s ease-in-out;
+  }
+  .cercle.inspire{transform:scale(1.9);}
+  .cercle.expire{transform:scale(1);}
+  .btn{
+    width:100%;height:46px;border:none;border-radius:var(--radius);
+    font:inherit;font-weight:600;font-size:14px;cursor:pointer;
+    margin-top:8px;
+  }
+  .btn-noir{background:var(--noir);color:var(--blanc);}
+  .btn:active{opacity:.85;}
+  .sons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+  .son{
+    border:1px solid var(--gris-bordure);background:var(--blanc);
+    border-radius:10px;padding:12px 8px;text-align:center;
+    cursor:pointer;font:inherit;font-size:12.5px;color:var(--noir);
+  }
+  .son.actif{background:var(--rose-pale);border-color:var(--rose);font-weight:600;}
+  .son .emoji{font-size:22px;display:block;margin-bottom:4px;}
+  audio{display:none;}
+  .volume{margin-top:10px;}
+  .volume label{font-size:12px;color:var(--gris-texte);display:block;margin-bottom:4px;}
+  input[type=range]{width:100%;accent-color:var(--rose);}
+</style>
+</head>
+<body>
+
+<img class="logo-haut" src="assets/logo.png" alt="MiEndo">
+
+<div class="entete">
+  <button class="retour" aria-label="Retour" onclick="window.location.href='bien-etre.html'">‹</button>
+  <h1 class="titre-page">En action</h1>
+  <span></span>
+</div>
+
+<div class="onglets" id="onglets">
+  <button class="onglet actif" data-r="yoga">Yoga</button>
+  <button class="onglet" data-r="recettes">Recettes</button>
+  <button class="onglet" data-r="respiration">Respiration</button>
+</div>
+
+<div class="contenu">
+
+  <!-- YOGA -->
+  <div class="rubrique visible" id="yoga">
+    <div class="carte">
+      <h2>🩸 Pendant les règles — doux et au sol</h2>
+      <div class="duree">~10 minutes</div>
+      <ol>
+        <li>Posture de l'enfant (Balasana) : genoux écartés, front au sol, bras relâchés — 1 minute, respiration lente.</li>
+        <li>Torsion couchée douce : allongée sur le dos, genoux pliés basculés d'un côté puis l'autre — 30 secondes par côté.</li>
+        <li>Jambes au mur (Viparita Karani) : allongée, jambes posées contre un mur ou une chaise — 3 minutes, excellent pour soulager la lourdeur pelvienne.</li>
+        <li>Respiration abdominale : main sur le ventre, gonfler à l'inspiration, rentrer à l'expiration — 2 minutes.</li>
+      </ol>
+    </div>
+
+    <div class="carte">
+      <h2>🌱 Phase folliculaire — dynamique</h2>
+      <div class="duree">~15 minutes</div>
+      <ol>
+        <li>Salutation au soleil (version douce), 3 à 5 cycles, à ton rythme.</li>
+        <li>Posture du chat-vache (Marjaryasana/Bitilasana), 8 à 10 respirations — mobilise la colonne et le bassin.</li>
+        <li>Fente basse (Anjaneyasana) chaque côté, 30 secondes — étire les hanches.</li>
+        <li>Posture de l'arbre (Vrksasana) chaque côté — équilibre et concentration.</li>
+      </ol>
+    </div>
+
+    <div class="carte">
+      <h2>⭐ Phase ovulatoire — ouverture des hanches</h2>
+      <div class="duree">~12 minutes</div>
+      <ol>
+        <li>Posture du papillon (Baddha Konasana), assise, dos droit — 2 minutes.</li>
+        <li>Pigeon doux (variante allongée si besoin) chaque côté — 1 minute par côté.</li>
+        <li>Torsion assise chaque côté — 30 secondes par côté.</li>
+        <li>Si douleur d'ovulation : privilégie la posture de l'enfant et la respiration plutôt que les étirements profonds.</li>
+      </ol>
+    </div>
+
+    <div class="carte">
+      <h2>🌾 Phase lutéale — apaisant</h2>
+      <div class="duree">~12 minutes</div>
+      <ol>
+        <li>Posture du chat-vache lent, 10 respirations.</li>
+        <li>Torsion douce assise chaque côté.</li>
+        <li>Jambes au mur, 5 minutes — particulièrement utile contre la rétention d'eau et les jambes lourdes.</li>
+        <li>Savasana (relaxation finale), 3 minutes, avec une couverture sur le ventre si tu as froid ou des crampes naissantes.</li>
+      </ol>
+      <p style="font-size:12.5px;color:var(--gris-texte);margin-top:8px;">Les jours de douleur marquée, remplace toute séance par la posture de l'enfant et la respiration : le repos est un choix valable, pas un renoncement.</p>
+    </div>
+  </div>
+
+  <!-- RECETTES -->
+  <div class="rubrique" id="recettes">
+    <div class="repas-onglets" id="repas-onglets">
+      <button class="repas-onglet actif" data-rec="petit_dejeuner">Petit-déj</button>
+      <button class="repas-onglet" data-rec="dejeuner">Déjeuner</button>
+      <button class="repas-onglet" data-rec="en_cas">En-cas</button>
+      <button class="repas-onglet" data-rec="diner">Dîner</button>
+    </div>
+
+    <div class="recette visible" id="rec-petit_dejeuner">
+      <div class="carte">
+        <h2>Porridge curcuma-gingembre-myrtilles</h2>
+        <div class="duree">10 min · anti-inflammatoire, riche en oméga-3</div>
+        <div class="ingredients">Flocons d'avoine, lait végétal (amande/avoine), 1 c. à café de curcuma, 1 cm de gingembre frais râpé, 1 c. à soupe de graines de lin moulues, myrtilles, 1 c. à café de miel ou sirop d'érable.</div>
+        <ol>
+          <li>Faire chauffer le lait végétal avec les flocons d'avoine 5 minutes à feu doux.</li>
+          <li>Ajouter le curcuma et le gingembre râpé, mélanger.</li>
+          <li>Verser dans un bol, ajouter les graines de lin et les myrtilles, sucrer légèrement.</li>
+        </ol>
+        <p style="font-size:12px;color:var(--gris-texte);margin-top:6px;">Le curcuma est plus assimilable accompagné d'une pointe de poivre noir et d'un corps gras (présent dans le lait végétal).</p>
+      </div>
+    </div>
+
+    <div class="recette" id="rec-dejeuner">
+      <div class="carte">
+        <h2>Bowl saumon, quinoa &amp; légumes verts</h2>
+        <div class="duree">20 min · oméga-3, fibres, faible en FODMAPs</div>
+        <div class="ingredients">Quinoa, pavé de saumon, épinards ou courgette, carotte, huile d'olive, jus de citron, graines de courge.</div>
+        <ol>
+          <li>Cuire le quinoa selon les instructions du paquet.</li>
+          <li>Cuire le saumon à la poêle ou au four (12 min, 180 °C).</li>
+          <li>Faire revenir les épinards et la courgette en dés à l'huile d'olive.</li>
+          <li>Assembler dans un bol, arroser de citron, parsemer de graines de courge.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="recette" id="rec-en_cas">
+      <div class="carte">
+        <h2>Boules d'énergie chocolat-noisette</h2>
+        <div class="duree">10 min, sans cuisson · magnésium</div>
+        <div class="ingredients">Dattes dénoyautées, noisettes, cacao non sucré, une pincée de sel, 1 c. à soupe d'huile de coco.</div>
+        <ol>
+          <li>Mixer les dattes et les noisettes jusqu'à obtenir une pâte collante.</li>
+          <li>Ajouter le cacao, le sel et l'huile de coco, mixer à nouveau.</li>
+          <li>Former des boules, réfrigérer 30 minutes.</li>
+        </ol>
+        <p style="font-size:12px;color:var(--gris-texte);margin-top:6px;">Pratique à garder sous la main en phase lutéale pour les fringales sucrées.</p>
+      </div>
+    </div>
+
+    <div class="recette" id="rec-diner">
+      <div class="carte">
+        <h2>Curry de lentilles corail au lait de coco</h2>
+        <div class="duree">25 min · anti-inflammatoire, riche en fer</div>
+        <div class="ingredients">Lentilles corail, lait de coco, curcuma, gingembre, carotte, épinards, riz basmati en accompagnement.</div>
+        <ol>
+          <li>Faire revenir le gingembre râpé, ajouter les lentilles, le lait de coco et le curcuma.</li>
+          <li>Ajouter la carotte en dés, couvrir et cuire 15 minutes à feu doux.</li>
+          <li>Ajouter les épinards en fin de cuisson, servir avec le riz basmati.</li>
+        </ol>
+        <p style="font-size:12px;color:var(--gris-texte);margin-top:6px;">Plat doux pour les jours d'endo-belly : facile à digérer, chaud et réconfortant.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESPIRATION -->
+  <div class="rubrique" id="respiration">
+    <div class="carte">
+      <h2>Cohérence cardiaque</h2>
+      <div class="duree">Inspire 5 s, expire 5 s</div>
+      <div class="cercle-zone"><div class="cercle" id="cercle">Prête ?</div></div>
+      <button class="btn btn-noir" id="btn-respiration">Commencer</button>
+      <p style="font-size:12.5px;color:var(--gris-texte);margin-top:8px;">5 minutes (environ 30 cycles) suffisent pour ressentir un effet sur la tension et la perception de la douleur.</p>
+    </div>
+
+    <div class="carte">
+      <h2>Sons relaxants</h2>
+      <div class="duree">À écouter pendant la respiration, le repos ou l'endormissement</div>
+      <div class="sons" id="sons">
+        <button class="son" data-freq="200" data-type="brown"><span class="emoji">🌧️</span>Pluie</button>
+        <button class="son" data-freq="180" data-type="brown"><span class="emoji">🌊</span>Vagues</button>
+        <button class="son" data-freq="220" data-type="white"><span class="emoji">📻</span>Bruit blanc</button>
+        <button class="son" data-freq="150" data-type="brown"><span class="emoji">🌲</span>Forêt &amp; vent</button>
+      </div>
+      <div class="volume">
+        <label for="volume">Volume</label>
+        <input type="range" id="volume" min="0" max="1" step="0.05" value="0.4">
+      </div>
+      <p style="font-size:11.5px;color:var(--gris-texte);margin-top:8px;">Sons générés directement par l'application (bruit filtré), sans téléchargement ni fichier audio externe.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // onglets principaux
+  document.getElementById('onglets').addEventListener('click', e => {
+    const b = e.target.closest('.onglet'); if (!b) return;
+    document.querySelectorAll('#onglets .onglet').forEach(x => x.classList.remove('actif'));
+    document.querySelectorAll('.rubrique').forEach(x => x.classList.remove('visible'));
+    b.classList.add('actif');
+    document.getElementById(b.dataset.r).classList.add('visible');
+    if (b.dataset.r !== 'respiration') arreterSon();
+  });
+
+  // sous-onglets recettes
+  document.getElementById('repas-onglets').addEventListener('click', e => {
+    const b = e.target.closest('.repas-onglet'); if (!b) return;
+    document.querySelectorAll('.repas-onglet').forEach(x => x.classList.remove('actif'));
+    document.querySelectorAll('.recette').forEach(x => x.classList.remove('visible'));
+    b.classList.add('actif');
+    document.getElementById('rec-' + b.dataset.rec).classList.add('visible');
+  });
+
+  // respiration guidée
+  let respirationActive = false, minuteur = null;
+  const cercle = document.getElementById('cercle');
+  function cycleRespiration(){
+    cercle.classList.remove('expire'); cercle.classList.add('inspire');
+    cercle.textContent = 'Inspire';
+    minuteur = setTimeout(() => {
+      cercle.classList.remove('inspire'); cercle.classList.add('expire');
+      cercle.textContent = 'Expire';
+      minuteur = setTimeout(cycleRespiration, 5000);
+    }, 5000);
+  }
+  document.getElementById('btn-respiration').addEventListener('click', e => {
+    respirationActive = !respirationActive;
+    if (respirationActive){ e.target.textContent = 'Arrêter'; cycleRespiration(); }
+    else {
+      e.target.textContent = 'Commencer';
+      clearTimeout(minuteur);
+      cercle.classList.remove('inspire'); cercle.classList.add('expire');
+      cercle.textContent = 'Bravo 💗';
+    }
+  });
+
+  // sons relaxants générés via Web Audio (bruit filtré, aucun fichier)
+  let contexteAudio = null, sourceSon = null, gainSon = null, sonActif = null;
+
+  function demarrerSon(type, freq){
+    arreterSon();
+    contexteAudio = contexteAudio || new (window.AudioContext || window.webkitAudioContext)();
+    const dureeBuffer = 2; // secondes, en boucle
+    const taille = contexteAudio.sampleRate * dureeBuffer;
+    const buffer = contexteAudio.createBuffer(1, taille, contexteAudio.sampleRate);
+    const data = buffer.getChannelData(0);
+    let dernier = 0;
+    for (let i = 0; i < taille; i++){
+      const blanc = Math.random() * 2 - 1;
+      if (type === 'brown'){
+        dernier = (dernier + 0.02 * blanc) / 1.02;
+        data[i] = dernier * 3.5;
+      } else {
+        data[i] = blanc * 0.5;
+      }
+    }
+    const source = contexteAudio.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+
+    const filtre = contexteAudio.createBiquadFilter();
+    filtre.type = 'lowpass';
+    filtre.frequency.value = parseInt(freq);
+
+    const gain = contexteAudio.createGain();
+    gain.gain.value = parseFloat(document.getElementById('volume').value);
+
+    source.connect(filtre).connect(gain).connect(contexteAudio.destination);
+    source.start();
+    sourceSon = source; gainSon = gain;
+  }
+
+  function arreterSon(){
+    if (sourceSon){ sourceSon.stop(); sourceSon = null; }
+    document.querySelectorAll('.son').forEach(b => b.classList.remove('actif'));
+    sonActif = null;
+  }
+
+  document.getElementById('sons').addEventListener('click', e => {
+    const b = e.target.closest('.son'); if (!b) return;
+    if (sonActif === b){ arreterSon(); return; }
+    arreterSon();
+    demarrerSon(b.dataset.type, b.dataset.freq);
+    b.classList.add('actif');
+    sonActif = b;
+  });
+
+  document.getElementById('volume').addEventListener('input', e => {
+    if (gainSon) gainSon.gain.value = parseFloat(e.target.value);
+  });
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>

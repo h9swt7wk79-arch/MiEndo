@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MiEndo — Conseils par phase</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FD8BAB">
+<link rel="apple-touch-icon" href="assets/icone-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="MiEndo">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Katibeh&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --noir:#000;--blanc:#FFF;
+    --gris-texte:#828282;--gris-bordure:#E6E6E6;
+    --rose:#FD8BAB;--rose-pale:rgba(253,139,171,.34);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:14px;color:var(--noir);
+    min-height:100dvh;padding-bottom:88px;
+    background:
+      linear-gradient(to bottom, rgba(255,255,255,.55), rgba(255,255,255,.72)),
+      url('assets/bg.jpg') center/cover no-repeat fixed;
+  }
+  .logo-haut{display:block;width:54px;margin:14px auto 4px;}
+  .entete{display:grid;grid-template-columns:36px 1fr 36px;align-items:center;padding:0 16px;margin-bottom:16px;}
+  .retour{background:none;border:none;cursor:pointer;font-size:22px;line-height:1;color:var(--noir);text-align:left;padding:4px;}
+  .titre-page{font-family:'Katibeh',serif;font-size:38px;font-weight:400;text-align:center;line-height:.9;margin-top:8px;color:var(--noir);}
+  .cartes{padding:0 12px;display:flex;flex-direction:column;gap:16px;}
+
+  /* carte de phase en haut */
+  .carte-phase{
+    background:rgba(255,255,255,.8);
+    border:1.5px solid var(--rose);
+    border-radius:14px;
+    padding:16px;
+  }
+  .carte-phase h2{
+    font-family:'Katibeh',serif;
+    font-size:30px;font-weight:400;line-height:.9;
+    color:var(--noir);
+    padding-top:6px;margin-bottom:6px;
+  }
+  .carte-phase .explication{font-size:13.5px;line-height:1.55;color:#474646;}
+
+  /* cartes thématiques : blanches, toujours ouvertes */
+  .carte{
+    background:rgba(255,255,255,.8);
+    border-radius:14px;
+    padding:16px;
+  }
+  .carte-titre{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:4px;
+  }
+  .carte h2{font-size:19px;font-weight:700;color:var(--noir);}
+  .carte .emoji{font-size:19px;}
+  .sous-rubrique{
+    font-size:12px;font-weight:700;color:var(--rose);
+    text-transform:uppercase;letter-spacing:.05em;
+    margin:12px 0 5px;
+  }
+  .carte ul{list-style:none;}
+  .carte li{
+    font-size:13.5px;line-height:1.5;color:var(--noir);
+    padding:3px 0 3px 18px;
+    position:relative;
+  }
+  .carte li::before{
+    content:'•';color:var(--rose);font-weight:700;
+    position:absolute;left:4px;
+  }
+  .conseils-titre{
+    font-size:12px;font-weight:700;color:var(--gris-texte);
+    text-transform:uppercase;letter-spacing:.06em;
+    margin:12px 0 6px;
+  }
+  .carte-phase ul{list-style:none;}
+  .carte-phase li{
+    font-size:13.5px;line-height:1.5;
+    padding:4px 0 4px 20px;position:relative;
+  }
+  .carte-phase li::before{
+    content:'•';color:var(--rose);font-weight:700;
+    position:absolute;left:6px;
+  }
+  .alerte-rouge{
+    background:rgba(250,202,210,.5);
+    border-radius:10px;
+    padding:10px 12px;
+    margin-top:12px;
+    font-size:12.5px;line-height:1.5;
+  }
+  .avertissement{color:var(--gris-texte);font-size:11.5px;text-align:center;padding:18px 24px 0;}
+  .nav-bas{
+    position:fixed;left:0;right:0;bottom:0;background:var(--blanc);
+    border-top:1px solid var(--gris-bordure);
+    display:flex;justify-content:space-around;align-items:center;
+    padding:10px 8px calc(10px + env(safe-area-inset-bottom));z-index:10;
+  }
+  .nav-bas a{display:flex;align-items:center;justify-content:center;width:44px;height:40px;border-radius:10px;}
+  .nav-bas img{width:30px;height:30px;}
+</style>
+</head>
+<body>
+
+<img class="logo-haut" src="assets/logo.png" alt="MiEndo">
+
+<div class="entete">
+  <button class="retour" aria-label="Retour" onclick="window.location.href='bien-etre.html'">‹</button>
+  <h1 class="titre-page">Ta phase</h1>
+  <span></span>
+</div>
+
+<div class="cartes">
+
+  <!-- Phase en cours + conseils adaptés -->
+  <div class="carte-phase">
+    <h2 id="phase-nom">Ta phase</h2>
+    <p class="explication" id="phase-explication">Chargement…</p>
+    <div class="conseils-titre">Conseils du moment</div>
+    <ul id="phase-conseils"></ul>
+  </div>
+
+  <!-- Gérer une crise -->
+  <div class="carte">
+    <div class="carte-titre"><h2>Gérer une crise</h2><span class="emoji">🔥</span></div>
+    <div class="sous-rubrique">Premiers réflexes</div>
+    <ul>
+      <li>La chaleur d'abord : bouillotte sur le ventre ou le bas du dos, ou bain chaud — c'est l'antalgique le plus accessible.</li>
+      <li>TENS si tu en as un : électrodes en bas du ventre ou du dos, séance de 20 à 30 minutes.</li>
+      <li>Position antalgique : allongée sur le côté en chien de fusil, ou sur le dos genoux ramenés vers la poitrine.</li>
+    </ul>
+    <div class="sous-rubrique">Pour traverser la vague</div>
+    <ul>
+      <li>Respiration lente : inspire 5 secondes, expire 5 secondes, pendant 5 minutes — ça module la perception de la douleur.</li>
+      <li>Prends ton traitement de crise tel que prescrit, sans attendre que la douleur soit installée : il est plus efficace pris tôt.</li>
+      <li>Note l'heure, l'intensité et ce qui a aidé dans ton Bilan : c'est précieux pour ajuster ton traitement avec ton médecin.</li>
+      <li>Besoin de soutien ? Le bouton ⚠️ de l'écran Cycle prépare un SMS pour ta personne de confiance.</li>
+    </ul>
+    <div class="alerte-rouge">🚨 Direction les urgences si : douleur brutale et inhabituelle, fièvre associée, malaise, vomissements incoercibles ou saignements très abondants (protection trempée en moins d'une heure).</div>
+  </div>
+
+  <!-- Sport -->
+  <div class="carte">
+    <div class="carte-titre"><h2>Sport</h2><span class="emoji">🏃‍♀️</span></div>
+    <div class="sous-rubrique">Au quotidien</div>
+    <ul>
+      <li>Une activité douce et régulière (marche, natation, yoga, vélo tranquille) aide à moduler la douleur et l'inflammation — la régularité compte plus que l'intensité.</li>
+      <li>La natation est souvent bien tolérée : l'eau porte le bassin et détend les muscles abdominaux.</li>
+      <li>Pense à la kiné spécialisée en pelvi-périnéologie : un plancher pelvien moins contracté, c'est souvent moins de douleurs.</li>
+    </ul>
+    <div class="sous-rubrique">Les jours douloureux</div>
+    <ul>
+      <li>Étirements doux : posture de l'enfant, genoux-poitrine, bascule du bassin — sans forcer.</li>
+      <li>Une marche courte et lente vaut mieux que rien, mais le repos est aussi un choix valable : aucune culpabilité.</li>
+    </ul>
+    <div class="sous-rubrique">À retenir</div>
+    <ul>
+      <li>Note dans ton Bilan les activités qui soulagent ou aggravent : ton corps est ton meilleur protocole d'étude.</li>
+    </ul>
+  </div>
+
+  <!-- Alimentation -->
+  <div class="carte">
+    <div class="carte-titre"><h2>Alimentation</h2><span class="emoji">🥗</span></div>
+    <div class="sous-rubrique">Tendance anti-inflammatoire</div>
+    <ul>
+      <li>Fais la part belle aux fruits, légumes, légumineuses, céréales complètes et oméga-3 (poissons gras, noix, huile de colza).</li>
+      <li>Hydrate-toi régulièrement tout au long de la journée ; les infusions (gingembre, camomille) comptent aussi.</li>
+      <li>Limite les produits ultra-transformés, la charcuterie et les excès de viande rouge, souvent pro-inflammatoires.</li>
+    </ul>
+    <div class="sous-rubrique">Spécial endo-belly</div>
+    <ul>
+      <li>Repas plus petits et plus fréquents, mangés lentement, plutôt que deux gros repas.</li>
+      <li>Repère tes sensibilités personnelles (souvent dans les FODMAPs : oignon, ail, blé, certains fruits) grâce au croisement journal Repas × Bilan dans Analyses.</li>
+      <li>Un ballonnement sévère et persistant n'est pas une fatalité : parles-en à ton gastro-entérologue ou à ton gynécologue.</li>
+    </ul>
+    <div class="sous-rubrique">Précautions</div>
+    <ul>
+      <li>Pas de régime d'exclusion strict (sans gluten, sans lactose…) sans accompagnement diététique : le risque de carence est réel et le bénéfice variable selon les personnes.</li>
+    </ul>
+  </div>
+
+  <!-- Sommeil -->
+  <div class="carte">
+    <div class="carte-titre"><h2>Sommeil</h2><span class="emoji">🌙</span></div>
+    <div class="sous-rubrique">Pourquoi c'est crucial</div>
+    <ul>
+      <li>Douleur et sommeil forment un cercle vicieux : la dette de sommeil abaisse le seuil douloureux, et la douleur fragmente les nuits. Casser le cercle par le sommeil est une vraie stratégie antalgique.</li>
+    </ul>
+    <div class="sous-rubrique">Routine</div>
+    <ul>
+      <li>Horaires de coucher et de lever réguliers, même le week-end.</li>
+      <li>Écrans coupés 30 à 60 minutes avant le coucher, lumière tamisée, chambre fraîche et sombre.</li>
+      <li>La bouillotte au coucher est une excellente alliée : antalgique et soporifique.</li>
+    </ul>
+    <div class="sous-rubrique">Positions</div>
+    <ul>
+      <li>En chien de fusil avec un coussin entre les genoux, ou un coussin sous les genoux sur le dos, pour détendre le bassin.</li>
+      <li>Les jours de fortes douleurs, une sieste courte (20 minutes) aide sans dérégler la nuit.</li>
+    </ul>
+  </div>
+
+  <!-- À éviter -->
+  <div class="carte">
+    <div class="carte-titre"><h2>À éviter</h2><span class="emoji">🚨</span></div>
+    <div class="sous-rubrique">Ce qui entretient l'inflammation</div>
+    <ul>
+      <li>Le tabac et l'alcool — les limiter est l'un des gestes les plus rentables pour les douleurs comme pour le sommeil.</li>
+      <li>L'excès de caféine, surtout en deuxième partie de journée.</li>
+      <li>Les longues périodes assise sans bouger : lève-toi quelques minutes chaque heure.</li>
+    </ul>
+    <div class="sous-rubrique">Les pièges</div>
+    <ul>
+      <li>L'automédication prolongée aux anti-inflammatoires sans avis médical : efficaces en crise, ils ont des effets indésirables au long cours.</li>
+      <li>Minimiser une douleur qui change, s'intensifie ou résiste au traitement habituel : c'est un motif de consultation, pas une faiblesse.</li>
+      <li>Comparer ton endométriose à celle des autres : les formes, les douleurs et les traitements varient énormément d'une personne à l'autre.</li>
+    </ul>
+  </div>
+
+  <!-- Ressources -->
+  <div class="carte">
+    <div class="carte-titre"><h2>Ressources fiables</h2><span class="emoji">🧭</span></div>
+    <div class="sous-rubrique">Associations</div>
+    <ul>
+      <li><a href="https://www.endofrance.org" target="_blank" rel="noopener" style="color:inherit;">EndoFrance</a> — information, soutien, annuaire et actions de sensibilisation.</li>
+      <li><a href="https://www.endomind.org" target="_blank" rel="noopener" style="color:inherit;">ENDOmind</a> — association de patientes, campagnes et accompagnement.</li>
+    </ul>
+    <div class="sous-rubrique">Parcours de soins</div>
+    <ul>
+      <li>Des filières régionales dédiées à l'endométriose existent partout en France : demande à ton médecin traitant ou ton gynécologue une orientation vers le centre expert de ta région.</li>
+      <li>L'endométriose peut ouvrir droit à une prise en charge ALD (affection longue durée) hors liste : parles-en à ton médecin traitant, ton rapport PDF MiEndo peut appuyer le dossier.</li>
+      <li>Études ou travail impactés ? Aménagements possibles (tiers temps, télétravail, mi-temps thérapeutique) — le compteur de journées perturbées dans Analyses t'aidera à objectiver la demande.</li>
+    </ul>
+  </div>
+
+</div>
+
+<p class="avertissement">Ces conseils sont généraux et ne remplacent pas l'avis de ton médecin ou de ton équipe de soins.</p>
+
+<nav class="nav-bas">
+  <a href="cycle.html" aria-label="Cycle"><img src="assets/icons/lune.svg" alt=""></a>
+  <a href="repas.html" aria-label="Repas"><img src="assets/icons/poids.svg" alt=""></a>
+  <a href="rendez-vous.html" aria-label="Rendez-vous"><img src="assets/icons/calendrier.svg" alt=""></a>
+  <a href="analyses.html" aria-label="Analyses"><img src="assets/icons/stats.svg" alt=""></a>
+  <a href="bien-etre.html" aria-label="Bien-être"><img src="assets/icons/feuille.svg" alt=""></a>
+  <a href="profil.html" aria-label="Profil"><img src="assets/icons/profil.svg" alt=""></a>
+</nav>
+
+<!-- ============ FIREBASE ============ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDunVhY9SnccIn78SU0SWyFDrXDrbSM9dw",
+    authDomain: "mimiendo-73245.firebaseapp.com",
+    projectId: "mimiendo-73245",
+    storageBucket: "mimiendo-73245.firebasestorage.app",
+    messagingSenderId: "989010109768",
+    appId: "1:989010109768:web:8cf8cf916f04ac5feebf7d",
+    measurementId: "G-2ZF2VBZP3G"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  /* ---------- explication + conseils par phase, sous l'angle endo ---------- */
+  const PHASES = {
+    'Phase menstruelle': {
+      emoji: '🩸',
+      explication: "Tes règles : l'endomètre s'évacue et les prostaglandines provoquent les contractions utérines. Avec une endométriose, les lésions réagissent aussi aux hormones — c'est souvent la phase la plus douloureuse.",
+      conseils: [
+        "Anticipe : bouillotte, traitement de crise à portée de main et agenda allégé si possible sur les premiers jours.",
+        "Privilégie les aliments riches en fer (légumineuses, viande, épinards) pour compenser les pertes, surtout si ton flux est abondant.",
+        "Mouvement très doux uniquement si tu en as envie ; le repos est tout aussi légitime.",
+        "Note chaque jour ta douleur dans le Bilan, même brièvement : la courbe de tes règles est l'info n°1 pour ton gynécologue."
+      ]
+    },
+    'Phase folliculaire': {
+      emoji: '🌱',
+      explication: "Les œstrogènes remontent : énergie et humeur s'améliorent en général. C'est souvent la fenêtre la plus confortable du cycle, profites-en.",
+      conseils: [
+        "Bon moment pour le sport un peu plus soutenu, les rendez-vous médicaux exigeants ou les projets énergivores.",
+        "Continue ton journal même quand tout va bien : les jours « sans » sont des données précieuses pour tes analyses.",
+        "C'est aussi le bon créneau pour les séances de kiné pelvienne, mieux tolérées hors période douloureuse."
+      ]
+    },
+    'Phase ovulatoire': {
+      emoji: '⭐',
+      explication: "Pic d'œstrogènes et de LH : l'ovulation. Avec une endométriose, cette phase peut réveiller des douleurs pelviennes latéralisées (douleur ovulatoire), parfois marquées.",
+      conseils: [
+        "Si tu as des douleurs à cette période, note leur côté et leur intensité : leur récurrence au même moment du cycle est une info clinique utile.",
+        "Fenêtre la plus fertile du cycle — à garder en tête selon ton objectif.",
+        "Chaleur et antalgiques prescrits fonctionnent aussi sur les douleurs d'ovulation."
+      ]
+    },
+    'Phase lutéale': {
+      emoji: '🌾',
+      explication: "La progestérone domine. Syndrome prémenstruel possible (irritabilité, ballonnements, fringales, seins tendus) — et chez beaucoup de femmes avec endométriose, l'endo-belly et la fatigue s'accentuent en fin de phase.",
+      conseils: [
+        "Aliments riches en magnésium (oléagineux, chocolat noir, légumes verts) et modération sur caféine et alcool.",
+        "Anticipe la semaine pré-règles : sommeil renforcé, bouillotte prête, charge mentale allégée si possible.",
+        "Fringales sucrées fréquentes et normales : note-les plutôt que de culpabiliser.",
+        "Les sautes d'humeur ont une explication hormonale — sois aussi indulgente avec toi que tu le serais avec une amie."
+      ]
+    }
+  };
+
+  function aMinuit(d){ const x = new Date(d); x.setHours(0,0,0,0); return x; }
+  function joursEntre(a,b){ return Math.round((b-a)/86400000); }
+
+  auth.onAuthStateChanged(async user => {
+    if (!user || user.isAnonymous) { window.location.href = 'index.html'; return; }
+    const doc = await db.collection('users').doc(user.uid).get();
+    const profil = doc.exists ? doc.data() : {};
+
+    const nomEl = document.getElementById('phase-nom');
+    const expEl = document.getElementById('phase-explication');
+    const consEl = document.getElementById('phase-conseils');
+
+    if (profil.suiviRegles === false){
+      nomEl.textContent = 'Ton suivi 🌸';
+      expEl.textContent = "Avec ta contraception en continu, ton cycle hormonal est mis au repos — c'est d'ailleurs souvent un objectif du traitement de l'endométriose. Les conseils ci-dessous restent valables, et ton bilan quotidien garde tout son intérêt.";
+      consEl.innerHTML = '<li>Remplis ton bilan régulièrement : c\u2019est lui qui révèle tes tendances, indépendamment du cycle.</li><li>Des saignements ou des douleurs qui réapparaissent sous traitement continu sont à noter et à signaler à ton médecin.</li>';
+      return;
+    }
+
+    if (!profil.lastPeriodStart){
+      nomEl.textContent = 'Ta phase 🌸';
+      expEl.textContent = "Indique le début de tes règles sur l'écran Cycle (bouton Règles) pour que je puisse estimer ta phase et adapter les conseils.";
+      consEl.innerHTML = '';
+      return;
+    }
+
+    const L = profil.cycleLength || 28;
+    const P = profil.periodLength || 5;
+    const debut = aMinuit(new Date(profil.lastPeriodStart));
+    const jour = ((joursEntre(debut, aMinuit(new Date())) % L) + L) % L + 1;
+    const ov = L - 14;
+    let phase;
+    if (jour <= P) phase = 'Phase menstruelle';
+    else if (jour < ov - 1) phase = 'Phase folliculaire';
+    else if (jour <= ov + 1) phase = 'Phase ovulatoire';
+    else phase = 'Phase lutéale';
+
+    const p = PHASES[phase];
+    nomEl.textContent = phase + ' ' + p.emoji + '  ·  J' + jour;
+    expEl.textContent = p.explication;
+    consEl.innerHTML = '';
+    p.conseils.forEach(c => {
+      const li = document.createElement('li');
+      li.textContent = c;
+      consEl.appendChild(li);
+    });
+  });
+</script>
+<script>
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>

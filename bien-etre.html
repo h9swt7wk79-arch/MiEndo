@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MiEndo — Bien-être</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FD8BAB">
+<link rel="apple-touch-icon" href="assets/icone-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="MiEndo">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Katibeh&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --noir:#000;--blanc:#FFF;
+    --gris-texte:#828282;--gris-bordure:#E6E6E6;
+    --rose:#FD8BAB;--rose-pale:rgba(253,139,171,.34);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:14px;color:var(--noir);
+    min-height:100dvh;padding-bottom:88px;
+    background:
+      linear-gradient(to bottom, rgba(255,255,255,.55), rgba(255,255,255,.72)),
+      url('assets/bg.jpg') center/cover no-repeat fixed;
+  }
+  .logo-haut{display:block;width:54px;margin:14px auto 4px;}
+  .entete{display:grid;grid-template-columns:36px 1fr 36px;align-items:center;padding:0 16px;margin-bottom:16px;}
+  .titre-page{font-family:'Katibeh',serif;font-size:38px;font-weight:400;text-align:center;line-height:.9;margin-top:8px;color:var(--noir);}
+  .menu{padding:0 12px;display:flex;flex-direction:column;gap:12px;}
+  .item{
+    display:flex;align-items:center;gap:14px;
+    background:rgba(255,255,255,.8);
+    border-radius:14px;
+    padding:16px;
+    text-decoration:none;color:var(--noir);
+  }
+  .item .emoji{
+    font-size:26px;flex-shrink:0;
+    width:48px;height:48px;border-radius:12px;
+    background:var(--rose-pale);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .item .textes{flex:1;}
+  .item h2{font-size:15.5px;font-weight:700;margin-bottom:2px;}
+  .item p{font-size:12.5px;color:var(--gris-texte);line-height:1.4;}
+  .item .chevron{color:var(--gris-texte);font-size:20px;flex-shrink:0;}
+  .nav-bas{
+    position:fixed;left:0;right:0;bottom:0;background:var(--blanc);
+    border-top:1px solid var(--gris-bordure);
+    display:flex;justify-content:space-around;align-items:center;
+    padding:10px 8px calc(10px + env(safe-area-inset-bottom));z-index:10;
+  }
+  .nav-bas a{display:flex;align-items:center;justify-content:center;width:44px;height:40px;border-radius:10px;}
+  .nav-bas img{width:30px;height:30px;}
+</style>
+</head>
+<body>
+
+<img class="logo-haut" src="assets/logo.png" alt="MiEndo">
+
+<div class="entete">
+  <span></span>
+  <h1 class="titre-page">Bien-être</h1>
+  <span></span>
+</div>
+
+<div class="menu">
+
+  <a class="item" href="bien-etre-conseils.html">
+    <span class="emoji">🌸</span>
+    <span class="textes">
+      <h2>Ta phase aujourd'hui</h2>
+      <p>Explication de ta phase actuelle et conseils adaptés, dont le mode crise</p>
+    </span>
+    <span class="chevron">›</span>
+  </a>
+
+  <a class="item" href="bien-etre-articles.html">
+    <span class="emoji">📚</span>
+    <span class="textes">
+      <h2>Conseils &amp; articles</h2>
+      <p>Nutrition, intimité, gestion de la crise, fertilité — sources scientifiques</p>
+    </span>
+    <span class="chevron">›</span>
+  </a>
+
+  <a class="item" href="bien-etre-blog.html">
+    <span class="emoji">💬</span>
+    <span class="textes">
+      <h2>Communauté</h2>
+      <p>Questions, témoignages et échanges entre utilisatrices</p>
+    </span>
+    <span class="chevron">›</span>
+  </a>
+
+  <a class="item" href="bien-etre-endo.html">
+    <span class="emoji">🩺</span>
+    <span class="textes">
+      <h2>Comprendre l'endométriose</h2>
+      <p>Mécanismes, diagnostic, traitements médicamenteux et chirurgicaux</p>
+    </span>
+    <span class="chevron">›</span>
+  </a>
+
+  <a class="item" href="bien-etre-action.html">
+    <span class="emoji">🧘‍♀️</span>
+    <span class="textes">
+      <h2>En action</h2>
+      <p>Yoga, recettes anti-inflammatoires, respiration et sons relaxants</p>
+    </span>
+    <span class="chevron">›</span>
+  </a>
+
+  <a class="item" href="bien-etre-mouvement.html">
+    <span class="emoji">📈</span>
+    <span class="textes">
+      <h2>Cycle &amp; mouvement</h2>
+      <p>Compare tes phases de cycle à ton activité (avec Santé / Apple)</p>
+    </span>
+    <span class="chevron">›</span>
+  </a>
+
+</div>
+
+<nav class="nav-bas">
+  <a href="cycle.html" aria-label="Cycle"><img src="assets/icons/lune.svg" alt=""></a>
+  <a href="repas.html" aria-label="Repas"><img src="assets/icons/poids.svg" alt=""></a>
+  <a href="rendez-vous.html" aria-label="Rendez-vous"><img src="assets/icons/calendrier.svg" alt=""></a>
+  <a href="analyses.html" aria-label="Analyses"><img src="assets/icons/stats.svg" alt=""></a>
+  <a href="bien-etre.html" aria-current="page" aria-label="Bien-être"><img src="assets/icons/feuille.svg" alt=""></a>
+  <a href="profil.html" aria-label="Profil"><img src="assets/icons/profil.svg" alt=""></a>
+</nav>
+
+<script>
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
