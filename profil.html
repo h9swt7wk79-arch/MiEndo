@@ -401,24 +401,37 @@
     return t[Math.floor(t.length/2)];
   }
 
-  // Cherche les événements quotidiens de Flo (symptômes, humeurs, flux…)
-  // Forme typique : { date: "2025-08-09…", category: "Symptom", subcategory: "cramps" }
-  function trouverEvenementsFlo(obj, profondeur = 0){
-    if (!obj || typeof obj !== 'object' || profondeur > 6) return null;
+  // Cherche récursivement un tableau d'événements quotidiens Flo (symptômes, humeurs, flux…)
+  // Tolérant sur les noms de clés : date/day/created_at + category/subcategory/event/symptom/type/name
+  const CLES_DATE = ['date', 'day', 'created_at', 'updated_at', 'point_date', 'log_date'];
+  const CLES_ID   = ['category', 'subcategory', 'event', 'symptom', 'type', 'name', 'id', 'tag'];
+
+  function ressembleEvenement(o){
+    if (!o || typeof o !== 'object' || Array.isArray(o)) return false;
+    return CLES_DATE.some(c => c in o) && CLES_ID.some(c => c in o);
+  }
+
+  function trouverEvenementsFlo(obj, profondeur = 0, resultats = []){
+    if (!obj || typeof obj !== 'object' || profondeur > 8) return resultats;
     if (Array.isArray(obj)){
-      if (obj.length && obj[0] && typeof obj[0] === 'object' &&
-          ('date' in obj[0]) && ('category' in obj[0] || 'subcategory' in obj[0] || 'event' in obj[0]))
-        return obj;
-      for (const el of obj){ const r = trouverEvenementsFlo(el, profondeur + 1); if (r) return r; }
-      return null;
+      if (obj.length && ressembleEvenement(obj[0])){
+        resultats.push(...obj);
+        return resultats;
+      }
+      for (const el of obj) trouverEvenementsFlo(el, profondeur + 1, resultats);
+      return resultats;
     }
-    for (const [k, v] of Object.entries(obj)){
-      if (Array.isArray(v) && v.length && v[0] && typeof v[0] === 'object' &&
-          ('date' in v[0]) && ('category' in v[0] || 'subcategory' in v[0] || 'event' in v[0]))
-        return v;
-      const r = trouverEvenementsFlo(v, profondeur + 1); if (r) return r;
-    }
+    for (const v of Object.values(obj)) trouverEvenementsFlo(v, profondeur + 1, resultats);
+    return resultats;
+  }
+
+  function dateEvenement(ev){
+    for (const c of CLES_DATE) if (ev[c]) return String(ev[c]).slice(0, 10);
     return null;
+  }
+  function idEvenement(ev){
+    for (const c of CLES_ID) if (ev[c]) return String(ev[c]).toLowerCase().trim();
+    return '';
   }
 
   // identifiants Flo (anglais) → champs MiEndo
@@ -551,14 +564,13 @@
     /* ---- symptômes et événements quotidiens Flo ---- */
     let symptomesImportes = 0;
     const evenements = trouverEvenementsFlo(donnees);
-    if (evenements){
+    if (evenements.length){
       // regrouper par date pour limiter les écritures
       const parDate = {};
       for (const ev of evenements){
-        if (!ev.date) continue;
-        const date = String(ev.date).slice(0, 10);
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
-        const id = String(ev.subcategory || ev.event || ev.category || '').toLowerCase().trim();
+        const date = dateEvenement(ev);
+        if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+        const id = idEvenement(ev);
         const cible = MAPPAGE_FLO[id];
         const entree = parDate[date] = parDate[date] || {};
         if (cible){
@@ -569,13 +581,11 @@
             entree[champ] = valeur; // champs simples : rapport, libido
           }
           symptomesImportes++;
-        } else if (id && !['period','menstruation'].includes(id)){
-          // non reconnu : on le conserve quand même, rien ne se perd
-          (entree.symptomesImportes = entree.symptomesImportes || new Set()).add(id);
         }
       }
       let lot2 = db.batch(), n2 = 0;
       for (const [date, entree] of Object.entries(parDate)){
+        if (!Object.keys(entree).length) continue;
         const donneesJour = { importeDe: 'flo' };
         for (const [champ, valeur] of Object.entries(entree)){
           donneesJour[champ] = valeur instanceof Set
@@ -626,7 +636,8 @@
       const resultat = await importerFlo(donnees);
       if (resultat){
         confirmation.textContent =
-          `Import Flo réussi ✓ ${resultat.cycles} cycle${resultat.cycles > 1 ? 's' : ''}, ${resultat.jours} jours de règles.`;
+          `Import Flo réussi ✓ ${resultat.cycles} cycle${resultat.cycles > 1 ? 's' : ''}, ${resultat.jours} jours de règles` +
+          (resultat.symptomes ? `, ${resultat.symptomes} symptôme(s) quotidien(s).` : ` (aucun symptôme quotidien trouvé dans ce fichier).`);
         return;
       }
 
