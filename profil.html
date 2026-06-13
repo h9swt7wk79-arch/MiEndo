@@ -69,6 +69,13 @@
     padding:7px 16px;
   }
   .btn-discret:active{background:#FAFAFA;}
+  .chip{
+    color:var(--noir);
+    border:1px solid var(--gris-bordure);background:var(--blanc);
+    border-radius:999px;padding:8px 14px;
+    font:inherit;font-size:13px;cursor:pointer;
+  }
+  .chip.choisi{background:var(--rose-pale);border-color:var(--rose);font-weight:600;}
   .btn-deconnexion{
     width:100%;height:44px;
     background:var(--blanc);color:#B3261E;
@@ -145,6 +152,20 @@
     </label>
     <input type="file" id="fichier-import" accept=".json,application/json">
     <div class="confirmation" id="confirmation-import"></div>
+  </div>
+
+  <div class="carte" id="carte-retour">
+    <h2 style="margin-bottom:6px;">Une suggestion, un bug ?</h2>
+    <p style="font-size:12.5px;color:var(--gris-texte);margin-bottom:10px;">Ton avis aide directement à améliorer MiEndo — merci d'avance 💗</p>
+    <div class="chips" id="type-retour" style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+      <button class="chip choisi" data-v="suggestion">💡 Suggestion</button>
+      <button class="chip" data-v="bug">🐛 Bug</button>
+      <button class="chip" data-v="autre">💬 Autre</button>
+    </div>
+    <textarea id="champ-retour" placeholder="Décris ton idée ou le problème rencontré…" maxlength="1000"
+      style="width:100%;min-height:80px;border:1px solid var(--gris-bordure);border-radius:10px;padding:10px 12px;font:inherit;resize:vertical;outline:none;color:var(--noir);background:var(--blanc);margin-bottom:10px;"></textarea>
+    <button class="btn-discret" id="btn-envoyer-retour" style="width:100%;text-align:center;">Envoyer</button>
+    <div class="confirmation" id="confirmation-retour"></div>
   </div>
 
   <div class="carte" style="text-align:center;">
@@ -692,6 +713,45 @@
       } else {
         msg.textContent = 'Erreur pendant la suppression. Réessaie ou écris-nous : contact.miendo@gmail.com';
       }
+    }
+  });
+
+  /* ---------- suggestion / commentaire ---------- */
+  let typeRetour = 'suggestion';
+  document.getElementById('type-retour').addEventListener('click', e => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    document.querySelectorAll('#type-retour .chip').forEach(x => x.classList.remove('choisi'));
+    b.classList.add('choisi');
+    typeRetour = b.dataset.v;
+  });
+
+  document.getElementById('btn-envoyer-retour').addEventListener('click', async () => {
+    const texte = document.getElementById('champ-retour').value.trim();
+    const msg = document.getElementById('confirmation-retour');
+    if (!texte){ msg.style.color = '#B3261E'; msg.textContent = 'Écris un petit mot avant d\u2019envoyer.'; return; }
+    msg.style.color = '';
+    msg.textContent = 'Envoi…';
+    try {
+      await db.collection('retours').add({
+        type: typeRetour,
+        texte,
+        auteurUid: uid,
+        email: auth.currentUser ? auth.currentUser.email : null,
+        page: 'profil',
+        creeLe: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      document.getElementById('champ-retour').value = '';
+      msg.style.color = '#1E7B34';
+      msg.textContent = 'Merci, c\u2019est envoyé ! 💗';
+      setTimeout(() => msg.textContent = '', 3000);
+    } catch (err){
+      console.error(err);
+      // repli : ouvre un email pré-rempli si l'écriture Firestore échoue
+      const sujet = encodeURIComponent('MiEndo — ' + typeRetour);
+      const corps = encodeURIComponent(texte);
+      window.location.href = `mailto:contact.miendo@gmail.com?subject=${sujet}&body=${corps}`;
+      msg.style.color = '#828282';
+      msg.textContent = 'Envoi direct indisponible — ouverture de ton application e-mail…';
     }
   });
 
