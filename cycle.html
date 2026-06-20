@@ -117,6 +117,23 @@
     margin-top:10px;
   }
   /* ---- calendrier ---- */
+  /* ---- message reçu du/de la partenaire ---- */
+  .message-partenaire{
+    display:flex;align-items:flex-start;gap:10px;
+    background:rgba(253,139,171,.15);
+    border:1px solid var(--rose-pale);
+    border-radius:14px;
+    margin:14px 16px 0;
+    padding:12px 14px;
+  }
+  .message-partenaire .emoji-message{font-size:18px;flex-shrink:0;}
+  .message-partenaire p{flex:1;font-size:13px;line-height:1.5;color:var(--noir);}
+  .message-partenaire .fermer-message{
+    background:none;border:none;cursor:pointer;
+    color:var(--gris-texte);font-size:16px;line-height:1;
+    padding:2px 4px;flex-shrink:0;
+  }
+
   .calendrier{
     background:var(--blanc);
     border-radius:18px 18px 0 0;
@@ -278,6 +295,13 @@
   </div>
 </div>
 
+<!-- Message reçu de l'espace partenaire -->
+<div class="message-partenaire" id="message-partenaire" hidden>
+  <span class="emoji-message">💌</span>
+  <p id="texte-message-partenaire"></p>
+  <button class="fermer-message" id="fermer-message-partenaire" aria-label="Marquer comme lu">×</button>
+</div>
+
 <!-- Calendrier -->
 <section class="calendrier">
   <div class="cal-entete">
@@ -369,6 +393,7 @@
     }
     toutAfficher();
     synchroniserPartage();
+    afficherMessagePartenaire();
   });
 
   // tient l'espace partenaire à jour à chaque visite
@@ -384,6 +409,27 @@
         majLe: firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
     } catch(err){ console.warn('Partage non synchronisé', err); }
+  }
+
+  // affiche le dernier message envoyé par le/la partenaire, s'il n'a pas déjà été lu
+  async function afficherMessagePartenaire(){
+    try {
+      if (!cycle.codePartenaire) return;
+      const doc = await db.collection('partage').doc(cycle.codePartenaire).get();
+      if (!doc.exists) return;
+      const d = doc.data();
+      if (!d.messagePartenaire) return;
+      const dejaLu = localStorage.getItem('miendo_message_lu_' + cycle.codePartenaire);
+      const horodatage = d.messagePartenaireLe ? String(d.messagePartenaireLe.seconds) : d.messagePartenaire;
+      if (dejaLu === horodatage) return;
+
+      document.getElementById('texte-message-partenaire').textContent = d.messagePartenaire;
+      document.getElementById('message-partenaire').hidden = false;
+      document.getElementById('fermer-message-partenaire').addEventListener('click', () => {
+        localStorage.setItem('miendo_message_lu_' + cycle.codePartenaire, horodatage);
+        document.getElementById('message-partenaire').hidden = true;
+      }, { once: true });
+    } catch(err){ console.warn('Message partenaire non chargé', err); }
   }
 
   /* ---------- calculs de cycle ---------- */
