@@ -117,22 +117,45 @@
     margin-top:10px;
   }
   /* ---- calendrier ---- */
-  /* ---- message reçu du/de la partenaire ---- */
-  .message-partenaire{
-    display:flex;align-items:flex-start;gap:10px;
-    background:rgba(253,139,171,.15);
-    border:1px solid var(--rose-pale);
-    border-radius:14px;
-    margin:14px 16px 0;
-    padding:12px 14px;
+  /* ---- pastille de notification message partenaire ---- */
+  .pastille-message{
+    position:relative;
+    width:36px;height:36px;
+    border:none;background:none;cursor:pointer;
+    font-size:20px;
+    display:flex;align-items:center;justify-content:center;
   }
-  .message-partenaire .emoji-message{font-size:18px;flex-shrink:0;}
-  .message-partenaire p{flex:1;font-size:13px;line-height:1.5;color:var(--noir);}
-  .message-partenaire .fermer-message{
-    background:none;border:none;cursor:pointer;
-    color:var(--gris-texte);font-size:16px;line-height:1;
-    padding:2px 4px;flex-shrink:0;
+  .badge-notif{
+    position:absolute;top:0;right:0;
+    background:#E0447C;color:var(--blanc);
+    font-size:10px;font-weight:700;
+    width:16px;height:16px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    line-height:1;
+    border:1.5px solid var(--blanc);
   }
+  .voile-message{
+    position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:30;
+  }
+  .popup-message{
+    position:fixed;left:50%;top:50%;
+    transform:translate(-50%,-50%);
+    background:var(--blanc);
+    border-radius:18px;
+    padding:22px 22px 18px;
+    width:min(300px, 84vw);
+    text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,.18);
+    z-index:31;
+  }
+  .popup-message .emoji-popup{font-size:30px;display:block;margin-bottom:10px;}
+  .popup-message p{font-size:14px;line-height:1.55;color:var(--noir);margin-bottom:16px;}
+  .popup-message .btn-fermer-popup{
+    background:var(--rose);color:var(--blanc);
+    border:none;border-radius:999px;
+    padding:9px 22px;font:inherit;font-weight:600;font-size:13px;cursor:pointer;
+  }
+  .popup-message .btn-fermer-popup:active{opacity:.85;}
 
   .calendrier{
     background:var(--blanc);
@@ -263,7 +286,9 @@
   <div class="entete">
     <span></span>
     <h1 class="titre-page">Cycle</h1>
-    <span></span>
+    <button class="pastille-message" id="pastille-message" hidden aria-label="Message de ton/ta partenaire">
+      💌<span class="badge-notif" id="badge-notif">1</span>
+    </button>
   </div>
 
   <div class="puces">
@@ -295,11 +320,12 @@
   </div>
 </div>
 
-<!-- Message reçu de l'espace partenaire -->
-<div class="message-partenaire" id="message-partenaire" hidden>
-  <span class="emoji-message">💌</span>
+<!-- Message reçu de l'espace partenaire : popup déclenchée par la pastille -->
+<div class="voile-message" id="voile-message" hidden></div>
+<div class="popup-message" id="popup-message" hidden>
+  <span class="emoji-popup">💌</span>
   <p id="texte-message-partenaire"></p>
-  <button class="fermer-message" id="fermer-message-partenaire" aria-label="Marquer comme lu">×</button>
+  <button class="btn-fermer-popup" id="fermer-message-partenaire">Fermer</button>
 </div>
 
 <!-- Calendrier -->
@@ -412,6 +438,7 @@
   }
 
   // affiche le dernier message envoyé par le/la partenaire, s'il n'a pas déjà été lu
+  // affiche une pastille de notification si le/la partenaire a laissé un message non lu
   async function afficherMessagePartenaire(){
     try {
       if (!cycle.codePartenaire) return;
@@ -419,16 +446,29 @@
       if (!doc.exists) return;
       const d = doc.data();
       if (!d.messagePartenaire) return;
+
+      // horodatage simple et fiable (pas de serverTimestamp ici : on évite
+      // le délai de résolution qui peut renvoyer null juste après l'écriture)
+      const horodatage = String(d.messagePartenaireLe || '');
       const dejaLu = localStorage.getItem('miendo_message_lu_' + cycle.codePartenaire);
-      const horodatage = d.messagePartenaireLe ? String(d.messagePartenaireLe.seconds) : d.messagePartenaire;
-      if (dejaLu === horodatage) return;
+      if (horodatage && dejaLu === horodatage) return;
 
       document.getElementById('texte-message-partenaire').textContent = d.messagePartenaire;
-      document.getElementById('message-partenaire').hidden = false;
-      document.getElementById('fermer-message-partenaire').addEventListener('click', () => {
+      document.getElementById('pastille-message').hidden = false;
+
+      document.getElementById('pastille-message').addEventListener('click', () => {
+        document.getElementById('voile-message').hidden = false;
+        document.getElementById('popup-message').hidden = false;
+      });
+
+      function fermerEtMarquerLu(){
         localStorage.setItem('miendo_message_lu_' + cycle.codePartenaire, horodatage);
-        document.getElementById('message-partenaire').hidden = true;
-      }, { once: true });
+        document.getElementById('voile-message').hidden = true;
+        document.getElementById('popup-message').hidden = true;
+        document.getElementById('pastille-message').hidden = true;
+      }
+      document.getElementById('fermer-message-partenaire').addEventListener('click', fermerEtMarquerLu, { once: true });
+      document.getElementById('voile-message').addEventListener('click', fermerEtMarquerLu, { once: true });
     } catch(err){ console.warn('Message partenaire non chargé', err); }
   }
 
