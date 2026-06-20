@@ -249,6 +249,7 @@
   function cleDate(d){
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }
+  function aMinuit(d){ const x = new Date(d); x.setHours(0,0,0,0); return x; }
   function afficherDate(){
     const auj = cleDate(new Date()) === cleDate(dateCourante);
     document.getElementById('date-affichee').textContent = auj
@@ -544,10 +545,30 @@
       const docUser = await db.collection('users').doc(uid).get();
       const code = docUser.exists ? docUser.data().codePartenaire : null;
       if (code){
+        // historique des 7 derniers jours (douleur + bien-être), pour donner
+        // une tendance au partenaire plutôt qu'un seul instantané
+        const auj = aMinuit(new Date());
+        const debut7 = new Date(auj); debut7.setDate(debut7.getDate() - 6);
+        const snap7 = await db.collection('users').doc(uid).collection('journal')
+          .where(firebase.firestore.FieldPath.documentId(), '>=', cleDate(debut7))
+          .where(firebase.firestore.FieldPath.documentId(), '<=', cleDate(auj))
+          .get();
+        const historique = [];
+        snap7.forEach(d => {
+          const v = d.data();
+          historique.push({
+            date: d.id,
+            douleur: typeof v.douleur === 'number' ? v.douleur : null,
+            bienetre: v.bienetre || null
+          });
+        });
+        historique.sort((a,b) => a.date.localeCompare(b.date));
+
         await db.collection('partage').doc(code).set({
           douleurDuJour: typeof reponses.douleurEva === 'number' ? reponses.douleurEva : null,
           bienetreDuJour: reponses.bienetre || null,
           dateBilan: cleDate(dateCourante),
+          historique7j: historique,
           majLe: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge:true });
       }
