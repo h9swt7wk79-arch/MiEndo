@@ -7,6 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#FD8BAB">
 <link rel="apple-touch-icon" href="assets/icone-192.png">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="MiEndo">
@@ -125,6 +126,7 @@
     font-size:20px;
     display:flex;align-items:center;justify-content:center;
   }
+  .pastille-message[hidden]{display:none;}
   .badge-notif{
     position:absolute;top:0;right:0;
     background:#E0447C;color:var(--blanc);
@@ -137,6 +139,7 @@
   .voile-message{
     position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:30;
   }
+  .voile-message[hidden]{display:none;}
   .popup-message{
     position:fixed;left:50%;top:50%;
     transform:translate(-50%,-50%);
@@ -148,6 +151,7 @@
     box-shadow:0 10px 30px rgba(0,0,0,.18);
     z-index:31;
   }
+  .popup-message[hidden]{display:none;}
   .popup-message .emoji-popup{font-size:30px;display:block;margin-bottom:10px;}
   .popup-message p{font-size:14px;line-height:1.55;color:var(--noir);margin-bottom:16px;}
   .popup-message .btn-fermer-popup{
@@ -437,40 +441,50 @@
     } catch(err){ console.warn('Partage non synchronisé', err); }
   }
 
-  // affiche le dernier message envoyé par le/la partenaire, s'il n'a pas déjà été lu
   // affiche une pastille de notification si le/la partenaire a laissé un message non lu
+  let horodatageMessageCourant = '';
+
   async function afficherMessagePartenaire(){
+    console.log('[debug message] codePartenaire =', cycle.codePartenaire);
     try {
-      if (!cycle.codePartenaire) return;
+      if (!cycle.codePartenaire) { console.log('[debug message] pas de code partenaire, arrêt'); return; }
       const doc = await db.collection('partage').doc(cycle.codePartenaire).get();
+      console.log('[debug message] document existe ?', doc.exists);
       if (!doc.exists) return;
       const d = doc.data();
-      if (!d.messagePartenaire) return;
+      console.log('[debug message] contenu reçu :', d);
+      if (!d.messagePartenaire) { console.log('[debug message] aucun messagePartenaire dans le document'); return; }
 
       // horodatage simple et fiable (pas de serverTimestamp ici : on évite
       // le délai de résolution qui peut renvoyer null juste après l'écriture)
       const horodatage = String(d.messagePartenaireLe || '');
       const dejaLu = localStorage.getItem('miendo_message_lu_' + cycle.codePartenaire);
-      if (horodatage && dejaLu === horodatage) return;
+      console.log('[debug message] horodatage=', horodatage, 'dejaLu=', dejaLu);
+      if (horodatage && dejaLu === horodatage) { console.log('[debug message] déjà lu, arrêt'); return; }
 
+      horodatageMessageCourant = horodatage;
       document.getElementById('texte-message-partenaire').textContent = d.messagePartenaire;
       document.getElementById('pastille-message').hidden = false;
-
-      document.getElementById('pastille-message').addEventListener('click', () => {
-        document.getElementById('voile-message').hidden = false;
-        document.getElementById('popup-message').hidden = false;
-      });
-
-      function fermerEtMarquerLu(){
-        localStorage.setItem('miendo_message_lu_' + cycle.codePartenaire, horodatage);
-        document.getElementById('voile-message').hidden = true;
-        document.getElementById('popup-message').hidden = true;
-        document.getElementById('pastille-message').hidden = true;
-      }
-      document.getElementById('fermer-message-partenaire').addEventListener('click', fermerEtMarquerLu, { once: true });
-      document.getElementById('voile-message').addEventListener('click', fermerEtMarquerLu, { once: true });
-    } catch(err){ console.warn('Message partenaire non chargé', err); }
+      console.log('[debug message] pastille affichée ✓');
+    } catch(err){ console.error('[debug message] ERREUR', err); }
   }
+
+  function ouvrirPopupMessage(){
+    document.getElementById('voile-message').hidden = false;
+    document.getElementById('popup-message').hidden = false;
+  }
+  function fermerPopupMessageEtMarquerLu(){
+    if (cycle.codePartenaire && horodatageMessageCourant){
+      localStorage.setItem('miendo_message_lu_' + cycle.codePartenaire, horodatageMessageCourant);
+    }
+    document.getElementById('voile-message').hidden = true;
+    document.getElementById('popup-message').hidden = true;
+    document.getElementById('pastille-message').hidden = true;
+  }
+  // listeners attachés une seule fois, au chargement de la page
+  document.getElementById('pastille-message').addEventListener('click', ouvrirPopupMessage);
+  document.getElementById('fermer-message-partenaire').addEventListener('click', fermerPopupMessageEtMarquerLu);
+  document.getElementById('voile-message').addEventListener('click', fermerPopupMessageEtMarquerLu);
 
   /* ---------- calculs de cycle ---------- */
   function joursEntre(a, b){ return Math.round((b - a) / 86400000); }
