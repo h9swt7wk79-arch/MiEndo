@@ -14,6 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Katibeh&display=swap" rel="stylesheet">
+<script src="assets/preferences.js"></script>
 <style>
   :root{
     --noir:#000000;
@@ -28,6 +29,17 @@
     --bleu-pale:#DCEAFB;     /* fond jours d'ovulation */
     --radius:10px;
   }
+  /* ---- préférences d'affichage : mode sombre + échelle de police ---- */
+  html{ font-size:calc(16px * var(--echelle-police, 1)); }
+  .mode-sombre{
+    --noir:#F2F0EF;
+    --blanc:#1C1B1E;
+    --gris-texte:#A8A6AA;
+    --gris-bordure:#3A383D;
+  }
+  .mode-sombre body{ background-color:#121113; }
+  .mode-sombre img:not(.logo, .logo-haut, .photo-recette, [src*="icons/"]){ filter:brightness(.9); }
+
   *{margin:0;padding:0;box-sizing:border-box;}
   body{
     font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
@@ -74,7 +86,7 @@
     justify-content:center;
     align-items:center;
     gap:10px;
-    margin-bottom:22px;
+    margin-bottom:10px;
   }
   .puce{
     color:var(--noir);
@@ -89,6 +101,13 @@
   }
   .puce img{width:21px;height:21px;}
   .puce-icone{padding:9px 10px;}
+  .zone-streak{
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    margin-bottom:18px;
+    font-size:12.5px;font-weight:600;color:var(--noir);
+  }
+  .zone-streak[hidden]{display:none;}
+  .zone-streak .emoji-streak{font-size:14px;}
   /* ---- anneau de cycle ---- */
   .anneau-zone{
     position:relative;
@@ -280,6 +299,40 @@
   }
   .nav-bas a:focus-visible{outline:2px solid var(--noir);}
   .nav-bas img{width:30px;height:30px;}
+
+  .bouton-flottant{
+    position:fixed;right:18px;bottom:84px;
+    width:54px;height:54px;border-radius:50%;
+    background:var(--noir);color:var(--blanc);
+    border:none;font-size:28px;line-height:1;
+    box-shadow:0 4px 14px rgba(0,0,0,.22);
+    cursor:pointer;z-index:20;
+  }
+  .bouton-flottant:active{opacity:.85;}
+
+  .voile-rapide{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:30;}
+  .voile-rapide[hidden]{display:none;}
+  .popup-rapide{
+    position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+    background:var(--blanc);border-radius:18px;
+    padding:24px 22px 20px;width:min(300px, 84vw);
+    text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.18);z-index:31;
+  }
+  .popup-rapide[hidden]{display:none;}
+  .popup-rapide h2{font-size:16px;font-weight:700;margin-bottom:16px;}
+  .echelle-rapide{margin-bottom:18px;}
+  .echelle-rapide span{
+    display:block;font-size:34px;font-weight:700;color:var(--rose);margin-bottom:10px;
+  }
+  .echelle-rapide input{width:100%;accent-color:var(--rose);}
+  .boutons-rapide{display:flex;gap:10px;}
+  .boutons-rapide button{
+    flex:1;height:44px;border-radius:12px;border:none;cursor:pointer;
+    font:inherit;font-weight:600;font-size:14px;
+  }
+  .btn-annuler-rapide{background:#F2F2F2;color:var(--noir);}
+  .btn-valider-rapide{background:var(--noir);color:var(--blanc);}
+  .boutons-rapide button:active{opacity:.85;}
 </style>
 </head>
 <body>
@@ -299,6 +352,11 @@
     <button class="puce" id="puce-regles"><img src="assets/icons/goutte.svg" alt="">Règles</button>
     <button class="puce" id="puce-bilan"><img src="assets/icons/bilan.svg" alt="">Bilan</button>
     <button class="puce puce-icone" id="puce-alerte" aria-label="Signaler une douleur"><img src="assets/icons/alerte.svg" alt=""></button>
+  </div>
+
+  <div class="zone-streak" id="zone-streak" hidden>
+    <span class="emoji-streak">🔥</span>
+    <span id="texte-streak"></span>
   </div>
 
   <!-- Anneau de progression du cycle -->
@@ -371,6 +429,22 @@
   <a href="bien-etre.html" aria-label="Conseils bien-être"><img src="assets/icons/feuille.svg" alt=""></a>
   <a href="profil.html" aria-label="Profil"><img src="assets/icons/profil.svg" alt=""></a>
 </nav>
+
+<!-- Bouton flottant : log rapide de douleur -->
+<button class="bouton-flottant" id="bouton-flottant" aria-label="Logger une douleur rapidement">+</button>
+
+<div class="voile-rapide" id="voile-rapide" hidden></div>
+<div class="popup-rapide" id="popup-rapide" hidden>
+  <h2>Douleur maintenant</h2>
+  <div class="echelle-rapide" id="echelle-rapide">
+    <span id="valeur-rapide">5</span>
+    <input type="range" id="curseur-rapide" min="0" max="10" value="5">
+  </div>
+  <div class="boutons-rapide">
+    <button class="btn-annuler-rapide" id="btn-annuler-rapide">Annuler</button>
+    <button class="btn-valider-rapide" id="btn-valider-rapide">Enregistrer</button>
+  </div>
+</div>
 
 <!-- ============ FIREBASE ============ -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -553,6 +627,47 @@
       String(d.getMonth()+1).padStart(2,'0') + '-' +
       String(d.getDate()).padStart(2,'0');
   }
+
+  /* ---------- bouton flottant : log rapide de douleur ---------- */
+  document.getElementById('curseur-rapide').addEventListener('input', e => {
+    document.getElementById('valeur-rapide').textContent = e.target.value;
+  });
+  document.getElementById('bouton-flottant').addEventListener('click', () => {
+    const cleAuj = cleDate(new Date());
+    const dejaSaisie = journal[cleAuj] && typeof journal[cleAuj].douleur === 'number';
+    document.getElementById('curseur-rapide').value = dejaSaisie ? journal[cleAuj].douleur : 5;
+    document.getElementById('valeur-rapide').textContent = dejaSaisie ? journal[cleAuj].douleur : 5;
+    document.getElementById('voile-rapide').hidden = false;
+    document.getElementById('popup-rapide').hidden = false;
+  });
+  function fermerPopupRapide(){
+    document.getElementById('voile-rapide').hidden = true;
+    document.getElementById('popup-rapide').hidden = true;
+  }
+  document.getElementById('btn-annuler-rapide').addEventListener('click', fermerPopupRapide);
+  document.getElementById('voile-rapide').addEventListener('click', fermerPopupRapide);
+  document.getElementById('btn-valider-rapide').addEventListener('click', async () => {
+    if (!uidCourant) return;
+    const valeur = parseInt(document.getElementById('curseur-rapide').value);
+    const cle = cleDate(new Date());
+    try {
+      await db.collection('users').doc(uidCourant).collection('journal').doc(cle).set({
+        douleur: valeur,
+        douleurRapide: true
+      }, { merge: true });
+      journal[cle] = { ...(journal[cle] || {}), douleur: valeur, douleurRapide: true };
+      fermerPopupRapide();
+      // reflète aussi la douleur du jour côté partenaire, comme un Bilan classique
+      if (cycle.codePartenaire){
+        db.collection('partage').doc(cycle.codePartenaire).set({
+          douleurDuJour: valeur, dateBilan: cle, majLe: Date.now()
+        }, { merge:true }).catch(() => {});
+      }
+    } catch(err){
+      console.error(err);
+      alert("Échec de l'enregistrement, réessaie.");
+    }
+  });
 
   function estJourRegles(d){
     // jours loggés OU prédits depuis lastPeriodStart (récurrence du cycle)
@@ -806,7 +921,26 @@
     toutAfficher();
   });
 
-  function toutAfficher(){ afficherAnneau(); afficherCalendrier(); }
+  function toutAfficher(){ afficherAnneau(); afficherCalendrier(); afficherStreak(); }
+
+  // jours consécutifs avec un bilan rempli, en remontant depuis aujourd'hui
+  function afficherStreak(){
+    const zone = document.getElementById('zone-streak');
+    let n = 0;
+    let curseur = aMinuit(new Date());
+    while (true){
+      const cle = cleDate(curseur);
+      const jour = journal[cle];
+      if (!jour || !jour.bilan) break;
+      n++;
+      curseur.setDate(curseur.getDate() - 1);
+    }
+    if (n < 2){ zone.hidden = true; return; }
+    document.getElementById('texte-streak').textContent =
+      n + ' jour' + (n > 1 ? 's' : '') + ' de suite';
+    zone.hidden = false;
+  }
+
   // premier rendu immédiat (état neutre, le temps que Firestore réponde)
   toutAfficher();
 </script>

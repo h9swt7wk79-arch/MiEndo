@@ -14,6 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Katibeh&display=swap" rel="stylesheet">
+<script src="assets/preferences.js"></script>
 <style>
   :root{
     --noir:#000000;
@@ -26,6 +27,17 @@
     --rose-pale:#FCE4EC;
     --radius:10px;
   }
+  /* ---- préférences d'affichage : mode sombre + échelle de police ---- */
+  html{ font-size:calc(16px * var(--echelle-police, 1)); }
+  .mode-sombre{
+    --noir:#F2F0EF;
+    --blanc:#1C1B1E;
+    --gris-texte:#A8A6AA;
+    --gris-bordure:#3A383D;
+  }
+  .mode-sombre body{ background-color:#121113; }
+  .mode-sombre img:not(.logo, .logo-haut, .photo-recette, [src*="icons/"]){ filter:brightness(.9); }
+
   *{margin:0;padding:0;box-sizing:border-box;}
   body{
     font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;

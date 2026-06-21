@@ -14,6 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Katibeh&display=swap" rel="stylesheet">
+<script src="assets/preferences.js"></script>
 <style>
   :root{
     --noir:#000;--blanc:#FFF;
@@ -21,6 +22,17 @@
     --rose:#FD8BAB;--rose-pale:rgba(253,139,171,.34);
     --radius:10px;
   }
+  /* ---- préférences d'affichage : mode sombre + échelle de police ---- */
+  html{ font-size:calc(16px * var(--echelle-police, 1)); }
+  .mode-sombre{
+    --noir:#F2F0EF;
+    --blanc:#1C1B1E;
+    --gris-texte:#A8A6AA;
+    --gris-bordure:#3A383D;
+  }
+  .mode-sombre body{ background-color:#121113; }
+  .mode-sombre img:not(.logo, .logo-haut, .photo-recette, [src*="icons/"]){ filter:brightness(.9); }
+
   *{margin:0;padding:0;box-sizing:border-box;}
   body{
     font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
@@ -69,6 +81,25 @@
   .btn-valider:active{opacity:.85;}
   .confirmation{text-align:center;color:#1E7B34;font-size:12.5px;height:16px;}
   .note{font-size:11.5px;color:var(--gris-texte);margin-top:8px;line-height:1.5;}
+
+  .ligne-toggle{display:flex;align-items:center;justify-content:space-between;}
+  .interrupteur{
+    width:46px;height:26px;border-radius:999px;
+    background:var(--gris-bordure);border:none;cursor:pointer;
+    position:relative;flex-shrink:0;transition:background .2s;
+  }
+  .interrupteur[aria-checked="true"]{background:var(--rose);}
+  .curseur-interrupteur{
+    position:absolute;top:3px;left:3px;
+    width:20px;height:20px;border-radius:50%;
+    background:var(--blanc);
+    transition:left .2s;
+    box-shadow:0 1px 3px rgba(0,0,0,.2);
+  }
+  .interrupteur[aria-checked="true"] .curseur-interrupteur{left:23px;}
+
+  .ligne-police{display:flex;align-items:center;gap:10px;}
+  .ligne-police input{flex:1;accent-color:var(--rose);}
 </style>
 </head>
 <body>
@@ -145,6 +176,33 @@
     <p class="note">Le bouton SOS de l'écran Cycle ouvrira directement un SMS à ce numéro avec ce message.</p>
   </div>
 
+  <div class="carte">
+    <h2>Affichage</h2>
+    <div class="ligne-toggle">
+      <span class="libelle-champ" style="margin-bottom:0;">Mode sombre</span>
+      <button class="interrupteur" id="toggle-sombre" role="switch" aria-checked="false">
+        <span class="curseur-interrupteur"></span>
+      </button>
+    </div>
+    <div class="champ" style="margin-top:14px;margin-bottom:0;">
+      <span class="libelle-champ">Taille du texte</span>
+      <div class="ligne-police">
+        <span style="font-size:12px;">A</span>
+        <input type="range" id="curseur-police" min="0.85" max="1.3" step="0.05" value="1">
+        <span style="font-size:18px;">A</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="carte">
+    <h2>Langue</h2>
+    <div class="chips" id="langue">
+      <button class="chip choisi" data-v="fr">🇫🇷 Français</button>
+      <button class="chip" data-v="en">🇬🇧 English</button>
+    </div>
+    <p class="note">L'anglais est en cours de déploiement sur l'ensemble de l'application — certains écrans peuvent encore apparaître en français.</p>
+  </div>
+
   <button class="btn-valider" id="btn-enregistrer">Enregistrer</button>
   <div class="confirmation" id="confirmation"></div>
 
@@ -200,7 +258,45 @@
     document.getElementById('nomUrgence').value = p.nomUrgence || '';
     document.getElementById('telUrgence').value = p.telUrgence || '';
     document.getElementById('messageUrgence').value = p.messageUrgence || '';
+    if (p.langue){
+      document.querySelectorAll('#langue .chip').forEach(b => b.classList.toggle('choisi', b.dataset.v === p.langue));
+    }
   });
+
+  /* ---------- affichage : mode sombre, taille de police, langue ---------- */
+  const toggleSombre = document.getElementById('toggle-sombre');
+  const curseurPolice = document.getElementById('curseur-police');
+
+  // état initial depuis localStorage (déjà appliqué par assets/preferences.js)
+  const sombreActif = localStorage.getItem('miendo_mode_sombre') === '1';
+  toggleSombre.setAttribute('aria-checked', String(sombreActif));
+  curseurPolice.value = localStorage.getItem('miendo_echelle_police') || '1';
+
+  toggleSombre.addEventListener('click', () => {
+    const actif = toggleSombre.getAttribute('aria-checked') === 'true';
+    const nouveau = !actif;
+    toggleSombre.setAttribute('aria-checked', String(nouveau));
+    document.documentElement.classList.toggle('mode-sombre', nouveau);
+    localStorage.setItem('miendo_mode_sombre', nouveau ? '1' : '0');
+  });
+
+  curseurPolice.addEventListener('input', () => {
+    document.documentElement.style.setProperty('--echelle-police', curseurPolice.value);
+    localStorage.setItem('miendo_echelle_police', curseurPolice.value);
+  });
+
+  document.getElementById('langue').addEventListener('click', e => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    document.querySelectorAll('#langue .chip').forEach(x => x.classList.remove('choisi'));
+    b.classList.add('choisi');
+    localStorage.setItem('miendo_langue', b.dataset.v);
+  });
+  // refléter la langue déjà mémorisée localement (peut différer de Firestore
+  // juste après un changement d'appareil, le temps que ça se resynchronise)
+  const langueLocale = localStorage.getItem('miendo_langue');
+  if (langueLocale){
+    document.querySelectorAll('#langue .chip').forEach(b => b.classList.toggle('choisi', b.dataset.v === langueLocale));
+  }
 
   const ADAPTATION_CONTRACEPTION = {
     pilule_continue_sans_regles: { suiviRegles: false },
@@ -243,6 +339,9 @@
     maj.nomUrgence = document.getElementById('nomUrgence').value.trim();
     maj.telUrgence = document.getElementById('telUrgence').value.trim();
     maj.messageUrgence = document.getElementById('messageUrgence').value.trim();
+
+    const langueBtn = document.querySelector('#langue .chip.choisi');
+    if (langueBtn) maj.langue = langueBtn.dataset.v;
 
     await db.collection('users').doc(uid).set(maj, { merge:true });
     document.getElementById('confirmation').textContent = 'Enregistré ✓';
