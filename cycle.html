@@ -422,8 +422,8 @@
       console.warn('Lecture Firestore impossible, affichage des données de démo.', e);
     }
     toutAfficher();
-    synchroniserPartage();
-    afficherMessagePartenaire();
+    await synchroniserPartage();
+    await afficherMessagePartenaire();
   });
 
   // tient l'espace partenaire à jour à chaque visite
@@ -436,7 +436,7 @@
         phase: e.phase,
         jourCycle: e.jour,
         prochainesRegles: cleDate(proch),
-        majLe: firebase.firestore.FieldValue.serverTimestamp()
+        majLe: Date.now()
       }, { merge: true });
     } catch(err){ console.warn('Partage non synchronisé', err); }
   }
