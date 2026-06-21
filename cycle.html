@@ -448,7 +448,7 @@
     console.log('[debug message] codePartenaire =', cycle.codePartenaire);
     try {
       if (!cycle.codePartenaire) { console.log('[debug message] pas de code partenaire, arrêt'); return; }
-      const doc = await db.collection('partage').doc(cycle.codePartenaire).get();
+      const doc = await db.collection('partage').doc(cycle.codePartenaire).get({ source: 'server' });
       console.log('[debug message] document existe ?', doc.exists);
       if (!doc.exists) return;
       const d = doc.data();
