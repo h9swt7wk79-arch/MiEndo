@@ -301,17 +301,24 @@
     const champ = document.getElementById('champ-message');
     const texte = champ.value.trim();
     const confirmation = document.getElementById('confirmation-envoi');
-    if (!texte || !codeActuel) return;
+    if (!texte || !codeActuel) { console.log('[debug envoi] bloqué : texte ou codeActuel manquant', {texte, codeActuel}); return; }
+    console.log('[debug envoi] écriture dans partage/' + codeActuel, { texte });
     try {
       await db.collection('partage').doc(codeActuel).set({
         messagePartenaire: texte,
         messagePartenaireLe: Date.now()
       }, { merge: true });
+      console.log('[debug envoi] écriture confirmée par le SDK');
+
+      // relecture immédiate pour vérifier que ça a bien été pris en compte serveur
+      const verif = await db.collection('partage').doc(codeActuel).get({ source: 'server' });
+      console.log('[debug envoi] relecture serveur :', verif.data());
+
       champ.value = '';
       confirmation.textContent = 'Envoyé 💗';
       setTimeout(() => confirmation.textContent = '', 2500);
     } catch (err){
-      console.error(err);
+      console.error('[debug envoi] ERREUR', err);
       confirmation.style.color = '#B3261E';
       confirmation.textContent = "Échec de l'envoi, réessaie.";
     }
