@@ -445,7 +445,9 @@
   let horodatageMessageCourant = '';
 
   async function afficherMessagePartenaire(){
-    console.log('[debug message] codePartenaire =', cycle.codePartenaire);
+    console.log('[debug message] codePartenaire =', JSON.stringify(cycle.codePartenaire),
+                'longueur=', cycle.codePartenaire ? cycle.codePartenaire.length : 0,
+                'codes=', cycle.codePartenaire ? [...cycle.codePartenaire].map(c => c.charCodeAt(0)) : []);
     try {
       if (!cycle.codePartenaire) { console.log('[debug message] pas de code partenaire, arrêt'); return; }
       const doc = await db.collection('partage').doc(cycle.codePartenaire).get({ source: 'server' });
