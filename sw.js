@@ -27,6 +27,9 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (url.origin !== location.origin) return; // Firebase, fonts… : réseau direct
 
+  // ne jamais mettre en cache les requêtes POST ni les appels API
+  if (e.request.method !== 'GET' || url.pathname.startsWith('/api/')) return;
+
   if (e.request.mode === 'navigate' || url.pathname.endsWith('.html')){
     // pages : réseau d'abord, cache en secours (hors-ligne)
     e.respondWith(
