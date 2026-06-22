@@ -262,18 +262,33 @@
      ou change l'action du formulaire en POST vers l'URL Brevo. */
   document.getElementById('form-beta').addEventListener('submit', async e => {
     e.preventDefault();
+    const btn = e.target.querySelector('button');
     const email = document.getElementById('champ-email').value.trim();
     if (!email || !email.includes('@')) return;
 
-    // Stockage local temporaire (à remplacer par l'API Brevo)
-    const inscrits = JSON.parse(localStorage.getItem('miendo_beta_emails') || '[]');
-    if (!inscrits.includes(email)){
-      inscrits.push(email);
-      localStorage.setItem('miendo_beta_emails', JSON.stringify(inscrits));
-    }
+    btn.textContent = 'Inscription…';
+    btn.disabled = true;
 
-    document.getElementById('form-beta').style.display = 'none';
-    document.getElementById('merci').classList.add('visible');
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await res.json();
+      if (data.ok){
+        document.getElementById('form-beta').style.display = 'none';
+        document.getElementById('merci').classList.add('visible');
+      } else {
+        throw new Error(data.error || 'Erreur inconnue');
+      }
+    } catch(err){
+      console.error(err);
+      btn.textContent = 'Je veux tester MiEndo →';
+      btn.disabled = false;
+      alert('Une erreur est survenue, réessaie ou écris-nous à contact.miendo@gmail.com');
+    }
   });
 </script>
 </body>
