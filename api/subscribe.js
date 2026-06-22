@@ -6,28 +6,35 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Méthode non autorisée' });
 
-  const email = (req.body?.email || '').trim().toLowerCase();
-  if (!email || !email.includes('@')) return res.status(400).json({ error: 'Email invalide' });
-
-  const apiKey = process.env.BREVO_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'Clé API manquante' });
-
   try {
-    const brevo = await fetch('https://api.brevo.com/v3/contacts', {
+    // Vercel parse automatiquement le JSON — req.body est déjà un objet
+    const email = String(req.body?.email || '').trim().toLowerCase();
+
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({ error: 'Email invalide', recu: email });
+    }
+
+    const apiKey = process.env.BREVO_API_KEY;
+    if (!apiKey) return res.status(500).json({ error: 'Clé manquante' });
+
+    const brevoRes = await fetch('https://api.brevo.com/v3/contacts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'api-key': apiKey },
       body: JSON.stringify({ email, listIds: [3], updateEnabled: true })
     });
 
-    const status = brevo.status;
-    if (status === 201 || status === 204) return res.status(200).json({ ok: true });
+    if (brevoRes.status === 201 || brevoRes.status === 204) {
+      return res.status(200).json({ ok: true });
+    }
 
-    let err = {};
-    try { err = await brevo.json(); } catch {}
-    if (err.code === 'duplicate_parameter') return res.status(200).json({ ok: true });
+    const errDetail = await brevoRes.json().catch(() => ({}));
+    if (errDetail.code === 'duplicate_parameter') {
+      return res.status(200).json({ ok: true });
+    }
 
-    return res.status(502).json({ error: 'Erreur Brevo', detail: err });
+    return res.status(502).json({ error: 'Erreur Brevo', status: brevoRes.status, detail: errDetail });
+
   } catch (e) {
-    return res.status(502).json({ error: 'Erreur réseau', detail: e.message });
+    return res.status(500).json({ error: e.message, stack: e.stack?.split('\n')[0] });
   }
 }
