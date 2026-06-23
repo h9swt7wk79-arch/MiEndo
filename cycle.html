@@ -15,6 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Katibeh&display=swap" rel="stylesheet">
 <script src="assets/preferences.js"></script>
+<script src="assets/i18n.js"></script>
 <style>
   :root{
     --noir:#000000;
@@ -103,11 +104,23 @@
   .puce-icone{padding:9px 10px;}
   .zone-streak{
     display:flex;align-items:center;justify-content:center;gap:6px;
-    margin-bottom:18px;
+    margin-bottom:10px;
     font-size:12.5px;font-weight:600;color:var(--noir);
   }
   .zone-streak[hidden]{display:none;}
   .zone-streak .emoji-streak{font-size:14px;}
+
+  .btn-predictions{
+    display:block;
+    margin:0 auto 16px;
+    background:rgba(255,255,255,.85);
+    border:1px solid var(--gris-bordure);
+    border-radius:999px;
+    padding:8px 20px;
+    font:inherit;font-size:13px;font-weight:600;
+    color:var(--noir);cursor:pointer;
+  }
+  .btn-predictions:active{background:var(--rose-pale);}
   /* ---- anneau de cycle ---- */
   .anneau-zone{
     position:relative;
@@ -342,17 +355,21 @@
 
   <div class="entete">
     <span></span>
-    <h1 class="titre-page">Cycle</h1>
+    <h1 class="titre-page" data-i18n="cycle_titre">Cycle</h1>
     <button class="pastille-message" id="pastille-message" hidden aria-label="Message de ton/ta partenaire">
       💌<span class="badge-notif" id="badge-notif">1</span>
     </button>
   </div>
 
   <div class="puces">
-    <button class="puce" id="puce-regles"><img src="assets/icons/goutte.svg" alt="">Règles</button>
-    <button class="puce" id="puce-bilan"><img src="assets/icons/bilan.svg" alt="">Bilan</button>
+    <button class="puce" id="puce-regles"><img src="assets/icons/goutte.svg" alt=""><span data-i18n="cycle_regles">Règles</span></button>
+    <button class="puce" id="puce-bilan"><img src="assets/icons/bilan.svg" alt=""><span data-i18n="cycle_bilan">Bilan</span></button>
     <button class="puce puce-icone" id="puce-alerte" aria-label="Signaler une douleur"><img src="assets/icons/alerte.svg" alt=""></button>
   </div>
+
+  <button class="btn-predictions" id="btn-predictions" onclick="window.location.href='predictions.html'">
+    🔮 Voir mes prédictions
+  </button>
 
   <div class="zone-streak" id="zone-streak" hidden>
     <span class="emoji-streak">🔥</span>
@@ -946,6 +963,7 @@
 </script>
 <script>
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+  document.addEventListener('DOMContentLoaded', window.appliquerTraductions);
 </script>
 </body>
 </html>

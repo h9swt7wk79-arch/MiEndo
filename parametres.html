@@ -15,6 +15,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Katibeh&display=swap" rel="stylesheet">
 <script src="assets/preferences.js"></script>
+<script src="assets/i18n.js"></script>
+<script src="assets/rappels.js"></script>
 <style>
   :root{
     --noir:#000;--blanc:#FFF;
@@ -108,7 +110,7 @@
 
 <div class="entete">
   <button class="retour" aria-label="Retour" onclick="history.back()">‹</button>
-  <h1 class="titre-page">Paramètres</h1>
+  <h1 class="titre-page" data-i18n="params_titre">Paramètres</h1>
   <span></span>
 </div>
 
@@ -176,6 +178,21 @@
     <p class="note">Le bouton SOS de l'écran Cycle ouvrira directement un SMS à ce numéro avec ce message.</p>
   </div>
 
+  <div class="carte" id="carte-rappel" hidden>
+    <h2>Rappel quotidien</h2>
+    <div class="ligne-toggle">
+      <span class="libelle-champ" style="margin-bottom:0;">Me rappeler de remplir mon bilan</span>
+      <button class="interrupteur" id="toggle-rappel" role="switch" aria-checked="false">
+        <span class="curseur-interrupteur"></span>
+      </button>
+    </div>
+    <div class="champ" id="ligne-heure-rappel" style="margin-top:14px;margin-bottom:0;" hidden>
+      <span class="libelle-champ">À quelle heure ?</span>
+      <input type="time" id="heure-rappel" value="20:00">
+    </div>
+    <p class="note">Une seule notification par jour, juste pour toi — désactivable à tout moment.</p>
+  </div>
+
   <div class="carte">
     <h2>Affichage</h2>
     <div class="ligne-toggle">
@@ -203,7 +220,7 @@
     <p class="note">L'anglais est en cours de déploiement sur l'ensemble de l'application — certains écrans peuvent encore apparaître en français.</p>
   </div>
 
-  <button class="btn-valider" id="btn-enregistrer">Enregistrer</button>
+  <button class="btn-valider" id="btn-enregistrer" data-i18n="params_enregistrer">Enregistrer</button>
   <div class="confirmation" id="confirmation"></div>
 
 </div>
@@ -262,6 +279,40 @@
       document.querySelectorAll('#langue .chip').forEach(b => b.classList.toggle('choisi', b.dataset.v === p.langue));
     }
   });
+
+  /* ---------- rappel quotidien (app native uniquement) ---------- */
+  if (window.MiendoRappels && window.MiendoRappels.estNatif()){
+    document.getElementById('carte-rappel').hidden = false;
+    const toggleRappel = document.getElementById('toggle-rappel');
+    const ligneHeure = document.getElementById('ligne-heure-rappel');
+    const champHeure = document.getElementById('heure-rappel');
+
+    const rappelActif = localStorage.getItem('miendo_rappel_actif') === '1';
+    const heureMemo = localStorage.getItem('miendo_rappel_heure');
+    toggleRappel.setAttribute('aria-checked', String(rappelActif));
+    ligneHeure.hidden = !rappelActif;
+    if (heureMemo) champHeure.value = String(heureMemo).padStart(2,'0') + ':00';
+
+    toggleRappel.addEventListener('click', async () => {
+      const actif = toggleRappel.getAttribute('aria-checked') === 'true';
+      const nouveau = !actif;
+      if (nouveau){
+        const heure = parseInt(champHeure.value.split(':')[0]) || 20;
+        const ok = await window.MiendoRappels.activerRappelBilan(heure);
+        if (!ok){ alert("Active les notifications pour MiEndo dans les réglages de ton téléphone."); return; }
+      } else {
+        await window.MiendoRappels.desactiverRappelBilan();
+      }
+      toggleRappel.setAttribute('aria-checked', String(nouveau));
+      ligneHeure.hidden = !nouveau;
+    });
+
+    champHeure.addEventListener('change', async () => {
+      if (toggleRappel.getAttribute('aria-checked') !== 'true') return;
+      const heure = parseInt(champHeure.value.split(':')[0]) || 20;
+      await window.MiendoRappels.activerRappelBilan(heure);
+    });
+  }
 
   /* ---------- affichage : mode sombre, taille de police, langue ---------- */
   const toggleSombre = document.getElementById('toggle-sombre');
@@ -350,6 +401,7 @@
 </script>
 <script>
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+  document.addEventListener('DOMContentLoaded', window.appliquerTraductions);
 </script>
 </body>
 </html>

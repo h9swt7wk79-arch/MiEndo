@@ -15,6 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Katibeh&display=swap" rel="stylesheet">
 <script src="assets/preferences.js"></script>
+<script src="assets/i18n.js"></script>
 <style>
   :root{
     --noir:#000;--blanc:#FFF;
@@ -113,7 +114,7 @@
 
 <div class="entete">
   <span></span>
-  <h1 class="titre-page">Profil</h1>
+  <h1 class="titre-page" data-i18n="profil_titre">Profil</h1>
   <span></span>
 </div>
 
@@ -183,7 +184,7 @@
   </div>
 
   <div class="carte" style="text-align:center;">
-    <h2 style="margin-bottom:6px;">Soutenir MiEndo</h2>
+    <h2 style="margin-bottom:6px;" data-i18n="profil_soutenir">Soutenir MiEndo</h2>
     <p style="font-size:12.5px;color:var(--gris-texte);margin-bottom:10px;">MiEndo est gratuite, sans pub et sans revente de données. Si elle t'aide, tu peux soutenir son développement 💗</p>
     <a href="https://ko-fi.com/miendo" target="_blank" rel="noopener"
        style="display:inline-block;background:var(--rose);color:#FFF;font-weight:600;
@@ -192,7 +193,7 @@
     </a>
   </div>
 
-  <button class="btn-deconnexion" id="btn-deconnexion">Se déconnecter</button>
+  <button class="btn-deconnexion" id="btn-deconnexion" data-i18n="profil_deconnexion">Se déconnecter</button>
 
   <button class="btn-discret" id="btn-supprimer" style="color:#B3261E;">Supprimer mon compte et toutes mes données</button>
   <div class="confirmation" id="confirmation-suppression" style="color:#B3261E;"></div>
@@ -776,6 +777,7 @@
 </script>
 <script>
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+  document.addEventListener('DOMContentLoaded', window.appliquerTraductions);
 </script>
 </body>
 </html>
