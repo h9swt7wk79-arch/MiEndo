@@ -284,6 +284,9 @@
     snapJournal.forEach(d => journal[d.id] = d.data());
     aliments = snapAliments.docs.map(d => d.data());
 
+    console.log('[Analyses] journal chargé :', Object.keys(journal).length, 'entrées');
+    console.log('[Analyses] exemple entrée :', Object.values(journal)[0]);
+
     afficherResume();
     afficherDouleurCycle();
     afficherDouleurParPhase();
@@ -444,24 +447,58 @@
   function afficherSymptomesFrequents(){
     const il90 = aMinuit(new Date()); il90.setDate(il90.getDate() - 90);
     const compte = {};
+    let nbJours = 0;
     Object.entries(journal).forEach(([date, v]) => {
       if (new Date(date) < il90) return;
+      nbJours++;
       CHAMPS_SYMPTOMES.forEach(champ => {
-        (v[champ] || []).forEach(s => { compte[s] = (compte[s] || 0) + 1; });
+        (v[champ] || []).forEach(s => {
+          if (s && s.trim()) compte[s.trim()] = (compte[s.trim()] || 0) + 1;
+        });
       });
     });
-    const tries = Object.entries(compte).sort((a,b) => b[1]-a[1]).slice(0, 6);
-    if (!tries.length){ document.getElementById('vide-symptomes').hidden = false; return; }
-    const ul = document.getElementById('liste-symptomes');
-    tries.forEach(([nom, n]) => {
-      const li = document.createElement('li');
-      const spanNom = document.createElement('span');
-      spanNom.textContent = nom;
-      const spanN = document.createElement('span');
-      spanN.className = 'compte';
-      spanN.textContent = n + ' jour' + (n>1?'s':'');
-      li.append(spanNom, spanN);
-      ul.appendChild(li);
+
+    console.log('[Analyses] symptômes trouvés :', compte, 'sur', nbJours, 'jours');
+
+    const tries = Object.entries(compte).sort((a,b) => b[1]-a[1]).slice(0, 8);
+    if (!tries.length){
+      document.getElementById('vide-symptomes').hidden = false;
+      document.getElementById('graphe-symptomes')?.remove();
+      return;
+    }
+
+    // remplacer la liste par un graphique à barres horizontales
+    const conteneur = document.getElementById('liste-symptomes');
+    conteneur.innerHTML = '';
+    const canvas = document.createElement('canvas');
+    canvas.id = 'graphe-symptomes';
+    canvas.style.maxHeight = '260px';
+    conteneur.appendChild(canvas);
+
+    new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: tries.map(([nom]) => nom.length > 22 ? nom.slice(0,20)+'…' : nom),
+        datasets: [{
+          data: tries.map(([,n]) => n),
+          backgroundColor: tries.map((_, i) =>
+            i === 0 ? '#FD8BAB' :
+            i === 1 ? '#F5A0B8' :
+            i <= 3  ? '#FABFCF' : '#F5D5DF'
+          ),
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        plugins: { legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ctx.raw + ' jour' + (ctx.raw > 1 ? 's' : '') } }
+        },
+        scales: {
+          x: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { display: false } },
+          y: { grid: { display: false } }
+        }
+      }
     });
   }
 

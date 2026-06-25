@@ -150,12 +150,22 @@
 
   <div class="carte">
     <h2>Exportation des données</h2>
-    <div class="centre" id="btn-export-pdf">
-      <span class="emoji">📄</span>
-      <span class="legende">Cliquez ci-dessus pour exporter un rapport au format pdf</span>
-    </div>
-    <div style="text-align:center;">
-      <button class="btn-discret" id="btn-export-json">Exporter aussi une sauvegarde (JSON)</button>
+    <p style="font-size:12.5px;color:var(--gris-texte);margin-bottom:12px;">Exporte tes données pour les partager avec ton médecin ou les sauvegarder.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="centre" id="btn-export-pdf" style="flex-direction:row;gap:12px;padding:14px 16px;">
+        <span style="font-size:28px;">📄</span>
+        <div style="text-align:left;">
+          <div style="font-weight:700;font-size:14px;">Rapport médical PDF</div>
+          <div class="legende">Journal détaillé des 31 derniers jours, à apporter en consultation</div>
+        </div>
+      </div>
+      <div class="centre" id="btn-export-json" style="flex-direction:row;gap:12px;padding:14px 16px;">
+        <span style="font-size:28px;">💾</span>
+        <div style="text-align:left;">
+          <div style="font-weight:700;font-size:14px;">Sauvegarde complète (JSON)</div>
+          <div class="legende">Toutes tes données, réimportables dans MiEndo</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -353,42 +363,109 @@
     return r;
   }
 
-  // PDF : rapport imprimable (le navigateur propose "Enregistrer en PDF")
+  // PDF : rapport médical détaillé
   document.getElementById('btn-export-pdf').addEventListener('click', async () => {
     if (!uid) return;
     const donnees = await chargerTout();
-    const dates = Object.keys(donnees.journal).sort().reverse().slice(0, 31); // dernier mois
-    const lignes = dates.map(dt => {
-      const j = donnees.journal[dt];
-      const elems = [];
-      if (typeof j.douleur === 'number') elems.push('Douleur ' + j.douleur + '/10');
-      if (j.regles) elems.push('Règles' + (j.flux ? ' ' + j.flux : ''));
-      if ((j.douleurs || []).length) elems.push(j.douleurs.join(', '));
-      if ((j.symptomes || []).length) elems.push(j.symptomes.join(', '));
-      if ((j.digestion || []).length) elems.push('Digestion : ' + j.digestion.join(', '));
-      if ((j.medicaments || []).length) elems.push('Médicaments : ' + j.medicaments.join(', '));
-      if (j.notes) elems.push('« ' + j.notes + ' »');
-      return `<tr><td>${dt}</td><td>${elems.join(' — ') || '–'}</td></tr>`;
+    const p = donnees.profil || {};
+
+    // résumé des 30 derniers jours
+    const il30 = new Date(); il30.setDate(il30.getDate() - 30); il30.setHours(0,0,0,0);
+    const entrées30 = Object.entries(donnees.journal || {})
+      .filter(([d]) => new Date(d) >= il30)
+      .sort(([a],[b]) => b.localeCompare(a));
+
+    const douleurs = entrées30.map(([,v]) => v.douleur).filter(x => typeof x === 'number');
+    const moyDouleur = douleurs.length ? (douleurs.reduce((a,b)=>a+b,0)/douleurs.length).toFixed(1) : 'N/A';
+    const maxDouleur = douleurs.length ? Math.max(...douleurs) : 'N/A';
+    const joursIntenses = douleurs.filter(d => d > 6).length;
+
+    // impacts
+    const impacts = entrées30.map(([,v]) => v.impact).filter(Boolean);
+    const nbAmenagees = impacts.filter(i => i === 'Journée aménagée').length;
+    const nbAnnulees = impacts.filter(i => i === 'Journée annulée').length;
+
+    // médicaments fréquents
+    const compteMeds = {};
+    entrées30.forEach(([,v]) => (v.medicaments||[]).forEach(m => { compteMeds[m]=(compteMeds[m]||0)+1; }));
+    const topMeds = Object.entries(compteMeds).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+    // symptômes fréquents
+    const compteSymp = {};
+    const CHAMPS = ['douleurs','etatGeneral','etatEmotionnel','digestion','transit','sommeilSymptomes'];
+    entrées30.forEach(([,v]) => CHAMPS.forEach(c => (v[c]||[]).forEach(s => { compteSymp[s]=(compteSymp[s]||0)+1; })));
+    const topSymp = Object.entries(compteSymp).sort((a,b)=>b[1]-a[1]).slice(0,6);
+
+    // lignes du journal
+    const lignes = entrées30.map(([dt, j]) => {
+      const cols = [];
+      if (typeof j.douleur === 'number') cols.push(`<td style="text-align:center;font-weight:${j.douleur>6?'bold':'normal'};color:${j.douleur>6?'#C0392B':'inherit'}">${j.douleur}/10</td>`);
+      else cols.push('<td style="text-align:center;color:#999">–</td>');
+      cols.push(`<td>${j.regles ? '🩸' + (j.flux ? ' ' + j.flux : '') : ''}</td>`);
+      cols.push(`<td>${(j.douleurs||[]).join(', ') || '–'}</td>`);
+      cols.push(`<td>${(j.medicaments||[]).join(', ') || '–'}</td>`);
+      cols.push(`<td>${j.impact || '–'}</td>`);
+      cols.push(`<td>${j.notes || ''}</td>`);
+      return `<tr><td>${new Date(dt+'T00:00:00').toLocaleDateString('fr-FR')}</td>${cols.join('')}</tr>`;
     }).join('');
+
     const f = window.open('', '_blank');
     f.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
-      <title>MiEndo — Rapport</title>
+      <title>MiEndo — Rapport médical</title>
       <style>
-        body{font-family:Arial,sans-serif;font-size:12px;color:#000;padding:24px;}
-        h1{font-size:20px;} h2{font-size:14px;margin:14px 0 6px;}
-        table{width:100%;border-collapse:collapse;}
-        td,th{border:1px solid #ccc;padding:6px 8px;text-align:left;vertical-align:top;}
-        th{background:#FCE4EC;}
-        .meta{color:#555;}
+        *{box-sizing:border-box;}
+        body{font-family:Arial,sans-serif;font-size:11px;color:#000;padding:20px;max-width:900px;margin:0 auto;}
+        h1{font-size:18px;color:#C0567E;margin-bottom:4px;}
+        h2{font-size:13px;color:#C0567E;margin:16px 0 6px;border-bottom:1px solid #F5C4D4;padding-bottom:4px;}
+        .meta{color:#555;font-size:11px;margin-bottom:16px;}
+        .grille{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+        .stat{background:#FFF0F5;border-radius:6px;padding:10px;text-align:center;}
+        .stat-val{font-size:22px;font-weight:bold;color:#C0567E;}
+        .stat-lab{font-size:10px;color:#666;margin-top:2px;}
+        table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+        td,th{border:1px solid #E0B0C0;padding:4px 6px;text-align:left;vertical-align:top;font-size:10px;}
+        th{background:#FCE4EC;font-weight:bold;}
+        .tag{display:inline-block;background:#FCE4EC;border-radius:4px;padding:1px 5px;margin:1px;}
+        .note{color:#777;font-size:10px;margin-top:12px;font-style:italic;}
+        @media print{body{padding:10px;}}
       </style></head><body>
       <h1>MiEndo — Rapport de suivi</h1>
-      <p class="meta">Généré le ${new Date().toLocaleDateString('fr-FR')} —
-        ${donnees.profil.age ? donnees.profil.age + ' ans — ' : ''}
-        Contraception : ${donnees.profil.contraception || 'non renseignée'}</p>
-      <h2>Journal des 31 derniers jours</h2>
-      <table><tr><th>Date</th><th>Observations</th></tr>${lignes || '<tr><td colspan=2>Aucune donnée</td></tr>'}</table>
-      <p class="meta">Document destiné à faciliter l'échange avec l'équipe de soins. Données déclaratives saisies par la patiente.</p>
-      <script>window.print();<\/script></body></html>`);
+      <p class="meta">
+        Généré le ${new Date().toLocaleDateString('fr-FR', {weekday:'long',day:'numeric',month:'long',year:'numeric'})} ·
+        ${p.age ? p.age + ' ans' : ''} ·
+        Contraception : ${p.contraception || 'non renseignée'} ·
+        Objectifs : ${(p.objectifs||[]).join(', ') || 'non renseignés'}
+      </p>
+
+      <h2>Résumé des 30 derniers jours</h2>
+      <div class="grille">
+        <div class="stat"><div class="stat-val">${moyDouleur}</div><div class="stat-lab">Douleur moyenne /10</div></div>
+        <div class="stat"><div class="stat-val">${maxDouleur}</div><div class="stat-lab">Pic de douleur /10</div></div>
+        <div class="stat"><div class="stat-val">${joursIntenses}</div><div class="stat-lab">Jours douleur &gt; 6</div></div>
+        <div class="stat"><div class="stat-val">${entrées30.length}</div><div class="stat-lab">Bilans remplis</div></div>
+        <div class="stat"><div class="stat-val">${nbAmenagees}</div><div class="stat-lab">Journées aménagées</div></div>
+        <div class="stat"><div class="stat-val">${nbAnnulees}</div><div class="stat-lab">Journées annulées</div></div>
+      </div>
+
+      ${topSymp.length ? `
+      <h2>Symptômes les plus fréquents (30 j)</h2>
+      <div>${topSymp.map(([s,n]) => `<span class="tag">${s} (${n}j)</span>`).join('')}</div>
+      ` : ''}
+
+      ${topMeds.length ? `
+      <h2>Médicaments / compléments utilisés (30 j)</h2>
+      <div>${topMeds.map(([m,n]) => `<span class="tag">${m} (${n}j)</span>`).join('')}</div>
+      ` : ''}
+
+      <h2>Journal détaillé</h2>
+      <table>
+        <tr><th>Date</th><th>Douleur</th><th>Règles</th><th>Localisations</th><th>Médicaments</th><th>Impact journée</th><th>Notes</th></tr>
+        ${lignes || '<tr><td colspan="7">Aucune donnée sur cette période</td></tr>'}
+      </table>
+
+      <p class="note">Document généré par l'application MiEndo (mi-endo.vercel.app). Données déclaratives saisies par la patiente — à interpréter dans le contexte d'une consultation médicale. Ce document ne remplace pas un avis médical.</p>
+      <script>window.print();<\/script>
+    </body></html>`);
     f.document.close();
   });
 
