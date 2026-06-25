@@ -98,6 +98,14 @@
   .liste-aliments li:last-child{border-bottom:none;}
   .liste-aliments .compte{color:var(--gris-texte);font-size:12.5px;}
   .vide-carte{color:#B5B5B5;font-size:13px;padding:8px 0;}
+  .liste-insights{list-style:none;}
+  .liste-insights li{
+    padding:9px 0 9px 2px;
+    font-size:13.5px;
+    line-height:1.45;
+    border-bottom:1px solid #F2F2F2;
+  }
+  .liste-insights li:last-child{border-bottom:none;}
   .avertissement{
     color:var(--gris-texte);
     font-size:11.5px;
@@ -149,6 +157,11 @@
     <div class="bloc"><span class="valeur" id="stat-jour">–</span><div class="libelle">Jour du cycle</div></div>
     <div class="bloc"><span class="valeur" id="stat-douleur">–</span><div class="libelle">Douleur moy. (30 j)</div></div>
     <div class="bloc"><span class="valeur" id="stat-crises">–</span><div class="libelle">Jours douleur &gt; 4 (30 j)</div></div>
+  </div>
+
+  <div class="carte" id="carte-insights" hidden>
+    <h2>Ce que montrent tes données</h2>
+    <ul class="liste-insights" id="liste-insights"></ul>
   </div>
 
   <div class="carte">
@@ -288,6 +301,7 @@
     console.log('[Analyses] exemple entrée :', Object.values(journal)[0]);
 
     afficherResume();
+    afficherInsights();
     afficherDouleurCycle();
     afficherDouleurParPhase();
     afficherImpact();
@@ -296,6 +310,84 @@
     afficherCategorie('transit');
     afficherTendance();
   });
+
+  /* ---------- insights en langage clair ---------- */
+  // Transforme les données brutes en 2 à 4 phrases lisibles. Chaque règle
+  // renvoie une phrase seulement si elle a assez de matière, sinon elle est
+  // ignorée. Si rien ne ressort, on affiche un encouragement plutôt qu'un
+  // message « pas assez de données ».
+  const LIB_PHASE = { Menstruelle:'menstruelle', Folliculaire:'folliculaire', Ovulatoire:'ovulatoire', Lutéale:'lutéale' };
+
+  function afficherInsights(){
+    const entrees = Object.entries(journal);
+    const phrases = [];
+
+    // 1. Phase du cycle où la douleur est en moyenne la plus forte
+    const avecDouleur = entrees.filter(([,v]) => typeof v.douleur === 'number');
+    if (cycle.lastPeriodStart && avecDouleur.length >= 3){
+      const parPhase = { Menstruelle:[], Folliculaire:[], Ovulatoire:[], Lutéale:[] };
+      avecDouleur.forEach(([date, v]) => {
+        const jc = jourDuCycle(new Date(date)); if (!jc) return;
+        parPhase[phaseDuJour(jc)].push(v.douleur);
+      });
+      const moy = {};
+      Object.keys(parPhase).forEach(p => { if (parPhase[p].length) moy[p] = parPhase[p].reduce((a,b)=>a+b,0)/parPhase[p].length; });
+      const phasesDispo = Object.keys(moy);
+      if (phasesDispo.length >= 2){
+        phasesDispo.sort((a,b) => moy[b] - moy[a]);
+        const top = phasesDispo[0];
+        phrases.push(`🩸 Tes douleurs sont en moyenne plus marquées en phase ${LIB_PHASE[top]} (${moy[top].toFixed(1)}/10).`);
+      }
+    }
+
+    // 2. Symptôme le plus souvent noté (marche même avec peu de données)
+    const CHAMPS_SYMP = ['douleurs','etatGeneral','etatEmotionnel','digestion','transit','sommeilSymptomes'];
+    const compteSymp = {};
+    entrees.forEach(([,v]) => CHAMPS_SYMP.forEach(c => (v[c]||[]).forEach(s => { compteSymp[s] = (compteSymp[s]||0)+1; })));
+    const sympTri = Object.entries(compteSymp).sort((a,b) => b[1]-a[1]);
+    if (sympTri.length && sympTri[0][1] >= 2){
+      phrases.push(`📝 Le symptôme que tu notes le plus souvent : ${sympTri[0][0].toLowerCase()} (${sympTri[0][1]} fois).`);
+    }
+
+    // 3. Impact sur le quotidien (journées aménagées / annulées)
+    const perturbees = entrees.map(([,v]) => v.impact)
+      .filter(i => i === 'Journée aménagée' || i === 'Journée annulée').length;
+    if (perturbees >= 1){
+      const s = perturbees > 1 ? 's' : '';
+      phrases.push(`📅 ${perturbees} journée${s} aménagée${s} ou annulée${s} à cause des douleurs sur ton suivi.`);
+    }
+
+    // 4. Recours (médicament / complément) le plus fréquent
+    const compteMed = {};
+    entrees.forEach(([,v]) => (v.medicaments||[]).forEach(m => { compteMed[m] = (compteMed[m]||0)+1; }));
+    const medTri = Object.entries(compteMed).sort((a,b) => b[1]-a[1]);
+    if (medTri.length && medTri[0][1] >= 2){
+      phrases.push(`💊 Ton recours le plus fréquent : ${medTri[0][0]} (${medTri[0][1]} fois).`);
+    }
+
+    // 5. Repère de pics de douleur (si rien de plus riche n'a été trouvé avant)
+    if (phrases.length < 2 && avecDouleur.length >= 2){
+      const pics = avecDouleur.filter(([,v]) => v.douleur > 6).length;
+      if (pics >= 1){
+        const s = pics > 1 ? 's' : '';
+        phrases.push(`📈 ${pics} journée${s} au-dessus de 6/10 sur ${avecDouleur.length} jours de douleur notés.`);
+      }
+    }
+
+    // Aucun insight : on encourage au lieu d'afficher un vide frustrant
+    if (!phrases.length){
+      if (entrees.length === 0){
+        phrases.push("Commence à remplir ton Bilan quotidien : dès quelques jours, tes premières tendances apparaîtront ici.");
+      } else {
+        const s = entrees.length > 1 ? 's' : '';
+        phrases.push(`Tu as ${entrees.length} jour${s} de suivi enregistré${s}. Continue : les tendances par phase de cycle se précisent à partir de quelques bilans.`);
+      }
+    }
+
+    document.getElementById('liste-insights').innerHTML =
+      phrases.slice(0,4).map(t => `<li>${t}</li>`).join('');
+    document.getElementById('carte-insights').hidden = false;
+  }
 
   /* ---------- résumé ---------- */
   function afficherResume(){
