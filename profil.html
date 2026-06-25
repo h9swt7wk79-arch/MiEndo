@@ -366,14 +366,33 @@
   // PDF : rapport médical détaillé
   document.getElementById('btn-export-pdf').addEventListener('click', async () => {
     if (!uid) return;
+
+    // Ouvre la fenêtre d'impression IMMÉDIATEMENT, dans le geste de clic.
+    // Si on attend la fin du chargement des données (await) avant d'appeler
+    // window.open(), les navigateurs mobiles bloquent le pop-up : c'est la
+    // cause du « rien ne s'ouvre sur téléphone ».
+    const f = window.open('', '_blank');
+    if (!f){
+      alert("Le navigateur a bloqué l'ouverture du rapport. Autorise les fenêtres pop-up pour ce site, puis réessaie.");
+      return;
+    }
+    f.document.write('<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>MiEndo — Rapport médical</title></head><body style="font-family:Arial,sans-serif;color:#C0567E;text-align:center;padding:60px 20px;">Préparation de ton rapport…</body></html>');
+    f.document.close();
+
     const donnees = await chargerTout();
     const p = donnees.profil || {};
 
-    // résumé des 30 derniers jours
+    // Résumé : 30 derniers jours par défaut. Si aucune entrée sur cette période,
+    // on bascule sur l'historique complet pour que le rapport ne soit jamais
+    // vide à tort (cause du « aucune donnée » alors que des données existent).
     const il30 = new Date(); il30.setDate(il30.getDate() - 30); il30.setHours(0,0,0,0);
-    const entrées30 = Object.entries(donnees.journal || {})
-      .filter(([d]) => new Date(d) >= il30)
-      .sort(([a],[b]) => b.localeCompare(a));
+    const toutesEntrees = Object.entries(donnees.journal || {}).sort(([a],[b]) => b.localeCompare(a));
+    let entrées30 = toutesEntrees.filter(([d]) => new Date(d) >= il30);
+    let libellePeriode = '30 derniers jours';
+    if (entrées30.length === 0 && toutesEntrees.length > 0){
+      entrées30 = toutesEntrees;
+      libellePeriode = 'historique complet';
+    }
 
     const douleurs = entrées30.map(([,v]) => v.douleur).filter(x => typeof x === 'number');
     const moyDouleur = douleurs.length ? (douleurs.reduce((a,b)=>a+b,0)/douleurs.length).toFixed(1) : 'N/A';
@@ -409,7 +428,7 @@
       return `<tr><td>${new Date(dt+'T00:00:00').toLocaleDateString('fr-FR')}</td>${cols.join('')}</tr>`;
     }).join('');
 
-    const f = window.open('', '_blank');
+    f.document.open();
     f.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
       <title>MiEndo — Rapport médical</title>
       <style>
@@ -437,7 +456,7 @@
         Objectifs : ${(p.objectifs||[]).join(', ') || 'non renseignés'}
       </p>
 
-      <h2>Résumé des 30 derniers jours</h2>
+      <h2>Résumé · ${libellePeriode}</h2>
       <div class="grille">
         <div class="stat"><div class="stat-val">${moyDouleur}</div><div class="stat-lab">Douleur moyenne /10</div></div>
         <div class="stat"><div class="stat-val">${maxDouleur}</div><div class="stat-lab">Pic de douleur /10</div></div>
@@ -448,12 +467,12 @@
       </div>
 
       ${topSymp.length ? `
-      <h2>Symptômes les plus fréquents (30 j)</h2>
+      <h2>Symptômes les plus fréquents</h2>
       <div>${topSymp.map(([s,n]) => `<span class="tag">${s} (${n}j)</span>`).join('')}</div>
       ` : ''}
 
       ${topMeds.length ? `
-      <h2>Médicaments / compléments utilisés (30 j)</h2>
+      <h2>Médicaments / compléments utilisés</h2>
       <div>${topMeds.map(([m,n]) => `<span class="tag">${m} (${n}j)</span>`).join('')}</div>
       ` : ''}
 

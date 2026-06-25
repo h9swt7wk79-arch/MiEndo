@@ -144,6 +144,13 @@
     line-height:.82;
     padding-top:14px;
   }
+  .phase .emoji-phase{
+    display:block;
+    font-family:'Inter',sans-serif;
+    font-size:22px;
+    line-height:1;
+    margin-top:8px;
+  }
   .sous-phase{
     color:var(--gris-texte);
     font-size:13px;
@@ -631,7 +638,7 @@
       "Phase lutéale": "🌙"
     };
     document.getElementById('texte-phase').innerHTML =
-      phase.replace(' ', '<br>') + ' ' + emojis[phase];
+      phase.replace(' ', '<br>') + '<span class="emoji-phase">' + emojis[phase] + '</span>';
     document.getElementById('texte-sous-phase').textContent =
       resteAvantRegles > 1
         ? `Règles dans ${resteAvantRegles} jours environ`
