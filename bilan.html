@@ -21,6 +21,7 @@
     --noir:#000;--blanc:#FFF;
     --gris-texte:#828282;--gris-bordure:#E6E6E6;
     --rose:#FD8BAB;--rose-pale:rgba(253,139,171,.34);
+    --corps-fond:#F1E6EB;--corps-bord:#E4CDD7;
     --radius:10px;
   }
   /* ---- préférences d'affichage : mode sombre + échelle de police ---- */
@@ -31,8 +32,19 @@
     --gris-texte:#A8A6AA;
     --gris-bordure:#3A383D;
   }
+  .mode-sombre{ --corps-fond:#362c31;--corps-bord:#4a3b43; }
   .mode-sombre body{ background-color:#121113; }
   .mode-sombre img:not(.logo, .logo-haut, .photo-recette, [src*="icons/"]){ filter:brightness(.9); }
+
+  /* ---- carte corporelle de la douleur ---- */
+  .carte-corps{ text-align:center; }
+  .corps-aide{ font-size:12.5px; color:var(--gris-texte); margin-bottom:6px; }
+  .svg-corps{ width:100%; max-width:330px; height:auto; touch-action:manipulation; }
+  .svg-corps .z{ fill:var(--corps-fond); stroke:var(--corps-bord); stroke-width:1.1; cursor:pointer; transition:fill .12s; }
+  .svg-corps .z:hover{ fill:var(--rose-pale); }
+  .svg-corps .z.on{ fill:var(--rose); stroke:#F76C95; }
+  .svg-corps .lbl-corps{ font-size:12px; fill:var(--gris-texte); text-anchor:middle; font-weight:600; }
+  .corps-selection{ font-size:12.5px; color:var(--rose); font-weight:600; margin-top:8px; min-height:16px; }
 
   *{margin:0;padding:0;box-sizing:border-box;}
   body{
@@ -194,6 +206,7 @@
     { titre:"Douleurs", sections:[
       { id:"douleurEva", nom:"Intensité de la douleur", type:"eva", min:0, max:10,
         gauche:"Aucune", droite:"Insupportable" },
+      { id:"zonesDouleur", nom:"Carte de la douleur", type:"corps" },
       { id:"douleurs", nom:"Localisation", type:"multi",
         options:["Crampes abdominales","Douleurs pelviennes","Douleurs dos","Dyspareunie","Sciatique","Douleurs aux seins","Jambes lourdes","Douleurs épaules","Douleurs thorax","Douleurs jambes","Migraines","Impression de courbatures"] },
       { id:"etatGeneral", nom:"État général", type:"multi",
@@ -251,6 +264,44 @@
   const PERTES = ["Pertes normales","Spotting","Crémeuses","Aqueuses","Odorantes","Sèches","Blanc d'œuf"];
   const QUALITE_SOMMEIL = ["Mauvais","Moyen","Bon"];
   const SYMPT_SOMMEIL = ["Endormissement difficile","Insomnie","Réveils nocturnes","Cauchemars","Rêves intenses","Sommeil agité","Réveil en forme"];
+
+  // Carte corporelle de la douleur : clés de zone -> libellé lisible
+  const LABELS_ZONES = {
+    'tete':'Tête', 'poitrine':'Poitrine', 'ventre':'Ventre', 'bas-ventre':'Bas-ventre',
+    'bras':'Bras', 'jambes':'Jambes', 'haut-dos':'Haut du dos', 'bas-dos':'Bas du dos', 'fessiers':'Fessiers'
+  };
+  const SVG_CORPS = `
+    <svg viewBox="0 0 360 430" class="svg-corps" role="group" aria-label="Carte corporelle">
+      <g>
+        <ellipse class="z" data-zone="tete" cx="90" cy="42" rx="23" ry="27"/>
+        <path class="z" data-zone="poitrine" d="M79 64 h22 v9 q14 3 27 14 l-2 49 h-72 l-2 -49 q13 -11 27 -14 z"/>
+        <path class="z" data-zone="ventre" d="M54 138 h72 l-2 40 h-68 z"/>
+        <path class="z" data-zone="bas-ventre" d="M56 180 h68 l-3 42 q-31 11 -62 0 z"/>
+        <path class="z" data-zone="bras" d="M55 82 q-21 5 -23 24 l-5 86 q9 5 18 0 l12 -84 z"/>
+        <path class="z" data-zone="bras" d="M125 82 q21 5 23 24 l5 86 q-9 5 -18 0 l-12 -84 z"/>
+        <path class="z" data-zone="jambes" d="M59 224 q16 7 29 1 l-3 152 q-12 5 -24 0 z"/>
+        <path class="z" data-zone="jambes" d="M121 224 q-16 7 -29 1 l3 152 q12 5 24 0 z"/>
+      </g>
+      <g>
+        <ellipse class="z" data-zone="tete" cx="270" cy="42" rx="23" ry="27"/>
+        <path class="z" data-zone="haut-dos" d="M259 64 h22 v9 q14 3 27 14 l-2 49 h-72 l-2 -49 q13 -11 27 -14 z"/>
+        <path class="z" data-zone="bas-dos" d="M234 138 h72 l-2 40 h-68 z"/>
+        <path class="z" data-zone="fessiers" d="M236 180 h68 l-3 42 q-31 11 -62 0 z"/>
+        <path class="z" data-zone="bras" d="M235 82 q-21 5 -23 24 l-5 86 q9 5 18 0 l12 -84 z"/>
+        <path class="z" data-zone="bras" d="M305 82 q21 5 23 24 l5 86 q-9 5 -18 0 l-12 -84 z"/>
+        <path class="z" data-zone="jambes" d="M239 224 q16 7 29 1 l-3 152 q-12 5 -24 0 z"/>
+        <path class="z" data-zone="jambes" d="M301 224 q-16 7 -29 1 l3 152 q12 5 24 0 z"/>
+      </g>
+      <text class="lbl-corps" x="90" y="422">Devant</text>
+      <text class="lbl-corps" x="270" y="422">Dos</text>
+    </svg>`;
+
+  function majSelectionCorps(){
+    const el = document.getElementById('corps-selection');
+    if (!el) return;
+    const z = reponses.zonesDouleur || [];
+    el.textContent = z.length ? z.map(c => LABELS_ZONES[c] || c).join(' · ') : '';
+  }
 
   /* ---------- état ---------- */
   let uid = null;
@@ -424,6 +475,25 @@
           });
         }
 
+        if (s.type === 'corps'){
+          corps.innerHTML = `<div class="carte-corps">
+              <p class="corps-aide">Touche les zones où tu as mal (devant et dos).</p>
+              ${SVG_CORPS}
+              <p class="corps-selection" id="corps-selection"></p>
+            </div>`;
+          const svg = corps.querySelector('.svg-corps');
+          svg.addEventListener('click', e => {
+            const zone = e.target.closest('.z'); if (!zone) return;
+            const cle = zone.dataset.zone;
+            const sel = new Set(reponses.zonesDouleur || []);
+            sel.has(cle) ? sel.delete(cle) : sel.add(cle);
+            reponses.zonesDouleur = [...sel];
+            svg.querySelectorAll('[data-zone="' + cle + '"]').forEach(el => el.classList.toggle('on', sel.has(cle)));
+            majSelectionCorps();
+            majResume(s);
+          });
+        }
+
         if (s.type === 'notes'){
           const ta = document.createElement('textarea');
           ta.id = 'champ-notes';
@@ -449,6 +519,11 @@
       r = [reponses.sommeilQualite, reponses.sommeilDuree != null ? reponses.sommeilDuree + ' h' : null]
         .filter(Boolean).join(' · ');
     }
+    if (s.type === 'corps'){
+      const n = (reponses.zonesDouleur || []).length;
+      el.textContent = n ? n + ' zone' + (n > 1 ? 's' : '') : '';
+      return;
+    }
     if (Array.isArray(r)) r = r.length ? r.length + ' sélectionné(s)' : null;
     if (s.type === 'eva' && typeof r === 'number') r = r + '/10';
     el.textContent = r || '';
@@ -467,6 +542,8 @@
     document.getElementById('zone-pertes').hidden = true;
     document.getElementById('champ-notes').value = '';
     document.querySelectorAll('.champ-autre').forEach(c => { c.value=''; c.classList.remove('visible'); });
+    document.querySelectorAll('.svg-corps .z.on').forEach(z => z.classList.remove('on'));
+    const cs = document.getElementById('corps-selection'); if (cs) cs.textContent = '';
   }
 
   function cocher(zoneSelecteur, valeurs){
@@ -524,6 +601,12 @@
       }
       if (d.sommeilSymptomes){ reponses.sommeilSymptomes = d.sommeilSymptomes; cocher('#sommeil-symptomes', d.sommeilSymptomes); }
       if (d.notes){ reponses.notes = d.notes; document.getElementById('champ-notes').value = d.notes; }
+      if (Array.isArray(d.zonesDouleur)){
+        reponses.zonesDouleur = d.zonesDouleur;
+        d.zonesDouleur.forEach(z =>
+          document.querySelectorAll('.svg-corps [data-zone="' + z + '"]').forEach(el => el.classList.add('on')));
+        majSelectionCorps();
+      }
       GROUPES.flatMap(g => g.sections).forEach(majResume);
     }
   }
@@ -551,6 +634,7 @@
     if (typeof reponses.sommeilDuree === 'number') donnees.sommeilDuree = reponses.sommeilDuree;
     if ((reponses.sommeilSymptomes || []).length) donnees.sommeilSymptomes = reponses.sommeilSymptomes;
     if (reponses.notes) donnees.notes = reponses.notes;
+    if ((reponses.zonesDouleur || []).length) donnees.zonesDouleur = reponses.zonesDouleur;
 
     await db.collection('users').doc(uid).collection('journal').doc(cleDate(dateCourante)).set(donnees, { merge:true });
 

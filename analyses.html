@@ -164,6 +164,12 @@
     <ul class="liste-insights" id="liste-insights"></ul>
   </div>
 
+  <div class="carte" id="carte-zones" hidden>
+    <h2>Tes zones de douleur</h2>
+    <div class="note">Le plus souvent marquées sur la carte corporelle de ton Bilan</div>
+    <ul class="liste-aliments" id="liste-zones"></ul>
+  </div>
+
   <div class="carte">
     <h2>Douleur au fil du cycle</h2>
     <div class="note">Cycle en cours, échelle 0–10</div>
@@ -302,6 +308,7 @@
 
     afficherResume();
     afficherInsights();
+    afficherZones();
     afficherDouleurCycle();
     afficherDouleurParPhase();
     afficherImpact();
@@ -311,12 +318,29 @@
     afficherTendance();
   });
 
+  /* ---------- zones de douleur (carte corporelle) ---------- */
+  function afficherZones(){
+    const compte = {};
+    Object.values(journal).forEach(v => (v.zonesDouleur||[]).forEach(z => { compte[z] = (compte[z]||0)+1; }));
+    const tri = Object.entries(compte).sort((a,b) => b[1]-a[1]);
+    if (!tri.length) return; // pas de carte remplie : la carte reste masquée
+    document.getElementById('liste-zones').innerHTML = tri.map(([z,n]) => {
+      const libelle = (LABELS_ZONES[z] || z).replace(/^./, c => c.toUpperCase());
+      return `<li><span>${libelle}</span><span class="compte">${n} jour${n>1?'s':''}</span></li>`;
+    }).join('');
+    document.getElementById('carte-zones').hidden = false;
+  }
+
   /* ---------- insights en langage clair ---------- */
   // Transforme les données brutes en 2 à 4 phrases lisibles. Chaque règle
   // renvoie une phrase seulement si elle a assez de matière, sinon elle est
   // ignorée. Si rien ne ressort, on affiche un encouragement plutôt qu'un
   // message « pas assez de données ».
   const LIB_PHASE = { Menstruelle:'menstruelle', Folliculaire:'folliculaire', Ovulatoire:'ovulatoire', Lutéale:'lutéale' };
+  const LABELS_ZONES = {
+    'tete':'tête', 'poitrine':'poitrine', 'ventre':'ventre', 'bas-ventre':'bas-ventre',
+    'bras':'bras', 'jambes':'jambes', 'haut-dos':'haut du dos', 'bas-dos':'bas du dos', 'fessiers':'fessiers'
+  };
 
   function afficherInsights(){
     const entrees = Object.entries(journal);
@@ -340,7 +364,15 @@
       }
     }
 
-    // 2. Symptôme le plus souvent noté (marche même avec peu de données)
+    // 2. Zone du corps la plus souvent marquée comme douloureuse (carte corporelle)
+    const compteZones = {};
+    entrees.forEach(([,v]) => (v.zonesDouleur||[]).forEach(z => { compteZones[z] = (compteZones[z]||0)+1; }));
+    const zonesTri = Object.entries(compteZones).sort((a,b) => b[1]-a[1]);
+    if (zonesTri.length && zonesTri[0][1] >= 2){
+      phrases.push(`🗺️ Zone la plus souvent douloureuse : ${LABELS_ZONES[zonesTri[0][0]] || zonesTri[0][0]} (${zonesTri[0][1]} fois).`);
+    }
+
+    // 3. Symptôme le plus souvent noté (marche même avec peu de données)
     const CHAMPS_SYMP = ['douleurs','etatGeneral','etatEmotionnel','digestion','transit','sommeilSymptomes'];
     const compteSymp = {};
     entrees.forEach(([,v]) => CHAMPS_SYMP.forEach(c => (v[c]||[]).forEach(s => { compteSymp[s] = (compteSymp[s]||0)+1; })));
@@ -357,12 +389,19 @@
       phrases.push(`📅 ${perturbees} journée${s} aménagée${s} ou annulée${s} à cause des douleurs sur ton suivi.`);
     }
 
-    // 4. Recours (médicament / complément) le plus fréquent
+    // 4. Recours ponctuel le plus fréquent contre la douleur.
+    //    On exclut les traitements de fond hormonaux / contraceptifs (pris en
+    //    continu) : sinon la pilule, prise tous les jours, ressortirait toujours
+    //    en tête alors que ce n'est pas un recours anti-douleur.
+    const TRAITEMENTS_FOND = ['Pilule','Progestatif seul','Endométrine','Visanne (diénogest)','Analogues GnRH'];
     const compteMed = {};
-    entrees.forEach(([,v]) => (v.medicaments||[]).forEach(m => { compteMed[m] = (compteMed[m]||0)+1; }));
+    entrees.forEach(([,v]) => (v.medicaments||[]).forEach(m => {
+      if (TRAITEMENTS_FOND.includes(m)) return;
+      compteMed[m] = (compteMed[m]||0)+1;
+    }));
     const medTri = Object.entries(compteMed).sort((a,b) => b[1]-a[1]);
     if (medTri.length && medTri[0][1] >= 2){
-      phrases.push(`💊 Ton recours le plus fréquent : ${medTri[0][0]} (${medTri[0][1]} fois).`);
+      phrases.push(`💊 Ton recours ponctuel le plus fréquent : ${medTri[0][0]} (${medTri[0][1]} fois).`);
     }
 
     // 5. Repère de pics de douleur (si rien de plus riche n'a été trouvé avant)

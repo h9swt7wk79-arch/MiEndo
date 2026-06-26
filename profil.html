@@ -415,6 +415,15 @@
     entrées30.forEach(([,v]) => CHAMPS.forEach(c => (v[c]||[]).forEach(s => { compteSymp[s]=(compteSymp[s]||0)+1; })));
     const topSymp = Object.entries(compteSymp).sort((a,b)=>b[1]-a[1]).slice(0,6);
 
+    // zones de douleur (carte corporelle du Bilan)
+    const LABELS_ZONES = {
+      'tete':'Tête', 'poitrine':'Poitrine', 'ventre':'Ventre', 'bas-ventre':'Bas-ventre',
+      'bras':'Bras', 'jambes':'Jambes', 'haut-dos':'Haut du dos', 'bas-dos':'Bas du dos', 'fessiers':'Fessiers'
+    };
+    const compteZones = {};
+    entrées30.forEach(([,v]) => (v.zonesDouleur||[]).forEach(z => { compteZones[z]=(compteZones[z]||0)+1; }));
+    const topZones = Object.entries(compteZones).sort((a,b)=>b[1]-a[1]);
+
     // lignes du journal
     const lignes = entrées30.map(([dt, j]) => {
       const cols = [];
@@ -465,6 +474,11 @@
         <div class="stat"><div class="stat-val">${nbAmenagees}</div><div class="stat-lab">Journées aménagées</div></div>
         <div class="stat"><div class="stat-val">${nbAnnulees}</div><div class="stat-lab">Journées annulées</div></div>
       </div>
+
+      ${topZones.length ? `
+      <h2>Localisation des douleurs (carte corporelle)</h2>
+      <div>${topZones.map(([z,n]) => `<span class="tag">${LABELS_ZONES[z] || z} (${n}j)</span>`).join('')}</div>
+      ` : ''}
 
       ${topSymp.length ? `
       <h2>Symptômes les plus fréquents</h2>
