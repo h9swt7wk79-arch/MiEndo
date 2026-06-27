@@ -112,7 +112,7 @@
     text-align:center;
     padding:4px 20px 0;
   }
-  canvas{max-height:220px;}
+  .cadre-graphe{ position:relative; height:220px; width:100%; }
   .onglets-analyse{
     display:flex;gap:6px;overflow-x:auto;
     padding-bottom:10px;margin-bottom:4px;
@@ -173,14 +173,14 @@
   <div class="carte">
     <h2>Douleur au fil du cycle</h2>
     <div class="note">Cycle en cours, échelle 0–10</div>
-    <canvas id="graphe-douleur"></canvas>
+    <div class="cadre-graphe"><canvas id="graphe-douleur"></canvas></div>
     <div class="vide-carte" id="vide-douleur" hidden>Pas encore de douleurs enregistrées ce cycle.</div>
   </div>
 
   <div class="carte">
     <h2>Douleur moyenne par phase</h2>
     <div class="note">Sur l'ensemble de tes données</div>
-    <canvas id="graphe-phases"></canvas>
+    <div class="cadre-graphe"><canvas id="graphe-phases"></canvas></div>
     <div class="vide-carte" id="vide-phases" hidden>Pas encore assez de données.</div>
   </div>
 
@@ -220,14 +220,14 @@
       <button class="onglet-analyse" data-c="sommeilDuree">Durée sommeil</button>
       <button class="onglet-analyse" data-c="fatigue">Fatigue</button>
     </div>
-    <canvas id="graphe-categorie"></canvas>
+    <div class="cadre-graphe"><canvas id="graphe-categorie"></canvas></div>
     <div class="vide-carte" id="vide-categorie" hidden>Pas encore assez de données pour cette rubrique. Remplis quelques Bilans en cochant cette rubrique : le graphique par phase apparaîtra ensuite.</div>
   </div>
 
   <div class="carte">
     <h2>Ta douleur dans le temps</h2>
     <div class="note">Évolution sur les 6 derniers cycles, intensité moyenne</div>
-    <canvas id="graphe-tendance"></canvas>
+    <div class="cadre-graphe"><canvas id="graphe-tendance"></canvas></div>
     <div class="vide-carte" id="vide-tendance" hidden>Continue à remplir ton Bilan : la tendance apparaîtra après quelques cycles.</div>
   </div>
 
@@ -267,6 +267,9 @@
   let aliments = [];  // [{date, repas, nom, ...}]
 
   const ROSE = '#FD8BAB';
+  // Les graphiques remplissent la hauteur de leur conteneur (.cadre-graphe) au lieu
+  // d'imposer un ratio largeur/hauteur qui se faisait rogner -> plus de barres coupées.
+  Chart.defaults.maintainAspectRatio = false;
 
   function aMinuit(d){ const x = new Date(d); x.setHours(0,0,0,0); return x; }
   function joursEntre(a,b){ return Math.round((b-a)/86400000); }
@@ -277,9 +280,12 @@
   function jourDuCycle(date){
     if (!cycle.lastPeriodStart) return null;
     const debut = aMinuit(new Date(cycle.lastPeriodStart));
+    const L = cycle.cycleLength || 28;
     const ecart = joursEntre(debut, aMinuit(date));
-    if (ecart < 0) return null;
-    return ecart % cycle.cycleLength + 1;
+    // Projette aussi les dates ANTÉRIEURES au dernier début de règles : sans ça,
+    // tout l'historique enregistré avant cette date renvoyait null et était
+    // ignoré par les analyses par phase (-> "pas de données" à tort).
+    return (((ecart % L) + L) % L) + 1;
   }
 
   function phaseDuJour(j){
@@ -577,14 +583,22 @@
 
   function afficherSymptomesFrequents(){
     const il90 = aMinuit(new Date()); il90.setDate(il90.getDate() - 90);
-    const compte = {};
+    const norm = s => s.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const compte = {};     // clé normalisée -> nombre de JOURS où le symptôme apparaît
+    const libelles = {};   // clé normalisée -> libellé lisible (1re orthographe rencontrée)
     let nbJours = 0;
     Object.entries(journal).forEach(([date, v]) => {
       if (new Date(date) < il90) return;
       nbJours++;
-      CHAMPS_SYMPTOMES.forEach(champ => {
+      const vusCeJour = new Set();        // chaque symptôme compté une seule fois par jour,
+      CHAMPS_SYMPTOMES.forEach(champ => {  // même s'il apparaît dans plusieurs rubriques
         (v[champ] || []).forEach(s => {
-          if (s && s.trim()) compte[s.trim()] = (compte[s.trim()] || 0) + 1;
+          if (!s || !s.trim()) return;
+          const cle = norm(s);             // fusionne les variantes de casse/accents/espaces
+          if (vusCeJour.has(cle)) return;  // (ex. une ancienne orthographe + la nouvelle)
+          vusCeJour.add(cle);
+          compte[cle] = (compte[cle] || 0) + 1;
+          if (!libelles[cle]) libelles[cle] = s.trim();
         });
       });
     });
@@ -601,15 +615,16 @@
     // remplacer la liste par un graphique à barres horizontales
     const conteneur = document.getElementById('liste-symptomes');
     conteneur.innerHTML = '';
+    conteneur.style.position = 'relative';
+    conteneur.style.height = (tries.length * 34 + 24) + 'px'; // hauteur adaptée au nombre de barres horizontales
     const canvas = document.createElement('canvas');
     canvas.id = 'graphe-symptomes';
-    canvas.style.maxHeight = '260px';
     conteneur.appendChild(canvas);
 
     new Chart(canvas, {
       type: 'bar',
       data: {
-        labels: tries.map(([nom]) => nom.length > 22 ? nom.slice(0,20)+'…' : nom),
+        labels: tries.map(([cle]) => { const nom = libelles[cle] || cle; return nom.length > 24 ? nom.slice(0,22)+'…' : nom; }),
         datasets: [{
           data: tries.map(([,n]) => n),
           backgroundColor: tries.map((_, i) =>
