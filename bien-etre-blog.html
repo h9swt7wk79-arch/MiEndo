@@ -306,7 +306,7 @@
     await db.collection('users').doc(uid).set({ pseudoCommunaute: e.target.value.trim() }, { merge:true });
   });
 
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+  if ('serviceWorker' in navigator && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) navigator.serviceWorker.register('sw.js').catch(function(){});
 </script>
 </body>
 </html>
