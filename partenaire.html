@@ -130,6 +130,44 @@
     display:inline-block;margin-top:8px;font-size:11.5px;color:var(--gris-texte);
     text-decoration:underline;background:none;border:none;cursor:pointer;font-family:inherit;
   }
+
+  /* ---- bloc phase cliquable + panneau explicatif ---- */
+  .bloc-cliquable{
+    display:block;width:100%;text-align:left;border:none;cursor:pointer;font-family:inherit;
+  }
+  .indice-clic{font-weight:400;font-size:10px;color:var(--rose);margin-left:4px;}
+  .panneau-phase{
+    background:var(--blanc);border:1px solid var(--gris-bordure);
+    border-radius:var(--radius);padding:14px;margin-bottom:10px;
+  }
+  .panneau-phase .explication-phase{font-size:13px;line-height:1.55;color:var(--noir);margin:0 0 10px;}
+  .titre-mini{font-size:11.5px;font-weight:700;color:var(--gris-texte);margin-bottom:7px;}
+  .puces-symptomes{display:flex;flex-wrap:wrap;gap:6px;}
+  .puce-symptome{
+    background:var(--rose-pale);color:var(--noir);
+    font-size:12px;padding:4px 11px;border-radius:999px;
+  }
+
+  /* ---- calendrier du cycle (côté partenaire) ---- */
+  .calendrier-partenaire{margin:6px 0 14px;}
+  .calendrier-partenaire .titre-section{font-size:12.5px;font-weight:700;color:var(--gris-texte);margin-bottom:8px;}
+  .cal-entete-p{display:flex;align-items:center;justify-content:space-between;padding:0 4px 6px;}
+  .cal-mois-p{font-weight:600;font-size:14px;text-transform:capitalize;}
+  .cal-nav-p{background:none;border:none;cursor:pointer;font-size:18px;color:var(--gris-texte);padding:2px 10px;}
+  .cal-p{width:100%;border-collapse:collapse;text-align:center;}
+  .cal-p th{font-size:10px;color:var(--gris-texte);font-weight:600;padding-bottom:4px;}
+  .cal-p td{font-size:12px;padding:5px 0;color:var(--noir);position:relative;}
+  .cal-p td.hors{color:#C9C9C9;}
+  .cal-p td .n{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;}
+  .cal-p td.regles .n{background:var(--rose-pale);color:var(--noir);}
+  .cal-p td.ovul .n{box-shadow:inset 0 0 0 1.5px var(--rose);}
+  .cal-p td.auj .n{background:var(--rose);color:var(--blanc);font-weight:700;}
+  .cal-legende{display:flex;gap:14px;justify-content:center;margin-top:8px;font-size:10.5px;color:var(--gris-texte);}
+  .cal-legende span{display:inline-flex;align-items:center;gap:5px;}
+  .cal-legende .pt{width:11px;height:11px;border-radius:50%;display:inline-block;}
+  .cal-legende .pt.regles{background:var(--rose-pale);}
+  .cal-legende .pt.ovul{box-shadow:inset 0 0 0 1.5px var(--rose);}
+  .cal-legende .pt.auj{background:var(--rose);}
 </style>
 </head>
 <body>
@@ -146,9 +184,14 @@
   </div>
 
   <div class="infos" id="zone-infos">
-    <div class="bloc-info">
-      <div class="libelle">Phase actuelle</div>
+    <button class="bloc-info bloc-cliquable" type="button" id="bloc-phase">
+      <div class="libelle">Phase actuelle <span class="indice-clic">ⓘ appuie pour comprendre</span></div>
       <div class="valeur" id="info-phase">–</div>
+    </button>
+    <div class="panneau-phase" id="panneau-phase" hidden>
+      <p class="explication-phase" id="explication-phase"></p>
+      <div class="titre-mini">Ce qu'elle peut ressentir en ce moment</div>
+      <div class="puces-symptomes" id="puces-symptomes"></div>
     </div>
     <div class="bloc-info">
       <div class="libelle">Jour du cycle</div>
@@ -157,6 +200,24 @@
     <div class="bloc-info">
       <div class="libelle">Prochaines règles (estimation)</div>
       <div class="valeur" id="info-regles">–</div>
+    </div>
+
+    <div class="calendrier-partenaire" id="zone-calendrier" hidden>
+      <div class="titre-section">Calendrier du cycle</div>
+      <div class="cal-entete-p">
+        <button class="cal-nav-p" id="mois-prec-p" type="button" aria-label="Mois précédent">‹</button>
+        <span class="cal-mois-p" id="cal-mois-p"></span>
+        <button class="cal-nav-p" id="mois-suiv-p" type="button" aria-label="Mois suivant">›</button>
+      </div>
+      <table class="cal-p">
+        <thead><tr><th>Di</th><th>Lu</th><th>Ma</th><th>Me</th><th>Je</th><th>Ve</th><th>Sa</th></tr></thead>
+        <tbody id="cal-corps-p"></tbody>
+      </table>
+      <div class="cal-legende">
+        <span><i class="pt regles"></i> Règles</span>
+        <span><i class="pt ovul"></i> Ovulation</span>
+        <span><i class="pt auj"></i> Aujourd'hui</span>
+      </div>
     </div>
     <div class="bloc-info">
       <div class="libelle">Douleur aujourd'hui</div>
@@ -219,6 +280,25 @@
     'Phase lutéale': "Fatigue, ballonnements et irritabilité peuvent s'accentuer à l'approche des règles — c'est hormonal, pas personnel. Patience, douceur, et un agenda allégé font la différence."
   };
 
+  // explication de chaque phase (ce qui se passe / ce qu'elle traverse)
+  const EXPLICATION_PHASE = {
+    'Phase menstruelle': "Ce sont les règles : l'utérus évacue sa muqueuse. Avec l'endométriose, c'est souvent la période la plus douloureuse — crampes, fatigue, parfois douleurs très intenses.",
+    'Phase folliculaire': "Juste après les règles. Le corps prépare un nouvel ovule et les œstrogènes remontent : l'énergie et l'humeur s'améliorent souvent. C'est en général la phase la plus « légère ».",
+    'Phase ovulatoire': "Le milieu du cycle : un ovule est libéré. Des douleurs d'un seul côté du bas-ventre peuvent apparaître, même en dehors des règles.",
+    'Phase lutéale': "La période avant les règles. Le corps se prépare à les déclencher : c'est le moment du syndrome prémenstruel — fatigue, ballonnements, irritabilité. C'est hormonal, pas dirigé contre toi."
+  };
+
+  // symptômes fréquents par phase (pour aider le/la partenaire à comprendre)
+  const SYMPTOMES_PHASE = {
+    'Phase menstruelle': ['Crampes', 'Douleurs pelviennes', 'Mal de dos', 'Fatigue intense', 'Migraines', 'Nausées'],
+    'Phase folliculaire': ['Regain d\u2019énergie', 'Meilleure humeur', 'Peau plus nette', 'Plus sociable'],
+    'Phase ovulatoire': ['Douleur d\u2019un côté du bas-ventre', 'Seins sensibles', 'Ballonnements'],
+    'Phase lutéale': ['Ballonnements', 'Irritabilité', 'Fatigue', 'Fringales', 'Seins tendus', 'Sommeil perturbé', 'Baisse de moral']
+  };
+
+  let donneesPartage = null;          // dernières données reçues (pour le calendrier)
+  let moisCalP = new Date();          // mois affiché dans le calendrier partenaire
+
   function afficherHistorique(historique){
     const conteneur = document.getElementById('barres-historique');
     conteneur.innerHTML = '';
@@ -255,7 +335,94 @@
     document.getElementById('info-bienetre').textContent =
       (d.dateBilan === aujISO && d.bienetreDuJour) || '–';
     afficherHistorique(d.historique7j);
+
+    donneesPartage = d;
+    majPanneauPhase(d.phase);
+    moisCalP = new Date();   // on (re)centre le calendrier sur le mois courant
+    majCalendrier();
   }
+
+  // remplit le panneau « explication + symptômes » de la phase courante
+  function majPanneauPhase(phase){
+    document.getElementById('explication-phase').textContent =
+      EXPLICATION_PHASE[phase] || "La phase du cycle n'est pas encore renseignée.";
+    const puces = document.getElementById('puces-symptomes');
+    puces.innerHTML = '';
+    (SYMPTOMES_PHASE[phase] || []).forEach(s => {
+      const span = document.createElement('span');
+      span.className = 'puce-symptome';
+      span.textContent = s;
+      puces.appendChild(span);
+    });
+  }
+
+  // ---- calendrier du cycle (lecture seule, reconstruit depuis les paramètres partagés) ----
+  function aMinuitP(d){ const x = new Date(d); x.setHours(0,0,0,0); return x; }
+  function joursEntreP(a,b){ return Math.round((b - a) / 86400000); }
+
+  function estReglesP(d, info){
+    if (!info.lastPeriodStart) return false;
+    const debut = aMinuitP(new Date(info.lastPeriodStart));
+    const ecart = joursEntreP(debut, aMinuitP(d));
+    const L = info.cycleLength || 28;
+    const pos = ((ecart % L) + L) % L;
+    return ecart >= 0 && pos < (info.periodLength || 5);
+  }
+  function estOvulP(d, info){
+    if (!info.lastPeriodStart) return false;
+    const debut = aMinuitP(new Date(info.lastPeriodStart));
+    const ecart = joursEntreP(debut, aMinuitP(d));
+    const L = info.cycleLength || 28;
+    const pos = ((ecart % L) + L) % L + 1;
+    const ov = L - 14;
+    return ecart >= 0 && pos >= ov - 1 && pos <= ov + 1;
+  }
+
+  function majCalendrier(){
+    const info = donneesPartage;
+    const zone = document.getElementById('zone-calendrier');
+    if (!info || !info.lastPeriodStart){ zone.hidden = true; return; }
+    zone.hidden = false;
+
+    const annee = moisCalP.getFullYear();
+    const mois = moisCalP.getMonth();
+    document.getElementById('cal-mois-p').textContent =
+      moisCalP.toLocaleDateString('fr-FR', { month:'long', year:'numeric' });
+
+    const decalage = new Date(annee, mois, 1).getDay();
+    const corps = document.getElementById('cal-corps-p');
+    corps.innerHTML = '';
+    const auj = aMinuitP(new Date());
+
+    let d = new Date(annee, mois, 1 - decalage);
+    for (let sem = 0; sem < 6; sem++){
+      if (sem === 5 && d.getMonth() !== mois) break;
+      const tr = document.createElement('tr');
+      for (let i = 0; i < 7; i++){
+        const td = document.createElement('td');
+        const hors = d.getMonth() !== mois;
+        if (hors) td.classList.add('hors');
+        else if (aMinuitP(d).getTime() === auj.getTime()) td.classList.add('auj');
+        else if (estReglesP(d, info)) td.classList.add('regles');
+        else if (estOvulP(d, info)) td.classList.add('ovul');
+        td.innerHTML = `<span class="n">${d.getDate()}</span>`;
+        tr.appendChild(td);
+        d.setDate(d.getDate() + 1);
+      }
+      corps.appendChild(tr);
+    }
+  }
+
+  document.getElementById('bloc-phase').addEventListener('click', () => {
+    const p = document.getElementById('panneau-phase');
+    p.hidden = !p.hidden;
+  });
+  document.getElementById('mois-prec-p').addEventListener('click', () => {
+    moisCalP.setMonth(moisCalP.getMonth() - 1); majCalendrier();
+  });
+  document.getElementById('mois-suiv-p').addEventListener('click', () => {
+    moisCalP.setMonth(moisCalP.getMonth() + 1); majCalendrier();
+  });
 
   async function tenterConnexion(code, afficherErreurs = true){
     const message = document.getElementById('message');
@@ -338,7 +505,7 @@
     }
   });
 
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+  if ('serviceWorker' in navigator && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) navigator.serviceWorker.register('sw.js').catch(function(){});
   document.addEventListener('DOMContentLoaded', window.appliquerTraductions);
 </script>
 </body>

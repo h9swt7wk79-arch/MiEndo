@@ -298,7 +298,17 @@
   }
   .fiche-btn-noir{background:var(--noir);color:var(--blanc);}
   .fiche-btn-blanc{background:var(--blanc);color:#B3261E;border:1px solid var(--gris-bordure);}
+  .fiche-btn-rose{background:var(--rose);color:var(--blanc);}
   .fiche-btn:active{opacity:.85;}
+
+  .cal-aujourdhui{
+    display:block;margin:0 auto 10px;
+    background:var(--rose-pale);color:var(--rose-texte);
+    border:none;border-radius:999px;cursor:pointer;
+    font:inherit;font-size:13px;font-weight:600;
+    padding:6px 16px;
+  }
+  .cal-aujourdhui:active{opacity:.8;}
 
   /* ---- barre de navigation ---- */
   .nav-bas{
@@ -421,6 +431,7 @@
     <span class="cal-mois" id="cal-mois"></span>
     <button class="cal-nav" id="mois-suiv" aria-label="Mois suivant">›</button>
   </div>
+  <button class="cal-aujourdhui" id="cal-aujourdhui">Revenir à aujourd'hui</button>
   <table class="cal" id="cal-table">
     <thead>
       <tr><th>Su</th><th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th><th>Sa</th></tr>
@@ -440,6 +451,7 @@
   <div id="fiche-contenu"></div>
   <div class="fiche-actions">
     <button class="fiche-btn fiche-btn-noir" id="fiche-bilan">Voir / modifier le bilan de ce jour</button>
+    <button class="fiche-btn fiche-btn-rose" id="fiche-demarrer-regles" hidden>Démarrer mes règles ce jour</button>
     <button class="fiche-btn fiche-btn-blanc" id="fiche-retirer-regles" hidden>Retirer les règles de ce jour</button>
     <button class="fiche-btn fiche-btn-blanc" id="fiche-annuler-debut" hidden>Annuler ce début de règles (tous les jours marqués)</button>
   </div>
@@ -534,6 +546,9 @@
         phase: e.phase,
         jourCycle: e.jour,
         prochainesRegles: cleDate(proch),
+        lastPeriodStart: cycle.lastPeriodStart,
+        cycleLength: cycle.cycleLength || 28,
+        periodLength: cycle.periodLength || 5,
         majLe: Date.now()
       }, { merge: true });
     } catch(err){ console.warn('Partage non synchronisé', err); }
@@ -766,28 +781,30 @@
   document.getElementById('mois-suiv').addEventListener('click', () => {
     moisAffiche.setMonth(moisAffiche.getMonth() + 1); afficherCalendrier();
   });
+  document.getElementById('cal-aujourdhui').addEventListener('click', () => {
+    moisAffiche = new Date(); afficherCalendrier();
+  });
 
   /* ---------- boutons d'action ---------- */
-  // RÈGLES : démarre les règles aujourd'hui → durée par défaut 5 jours
-  // (modifiable plus tard dans les paramètres via periodLength)
-  document.getElementById('puce-regles').addEventListener('click', async () => {
+  // Démarre les règles à partir d'une date donnée et marque automatiquement
+  // les jours suivants (periodLength). Réutilisé par le bouton « Règles »
+  // (aujourd'hui) et par le bouton « Démarrer mes règles ce jour » du calendrier.
+  async function demarrerReglesDepuis(dateDebut){
     if (!uidCourant) return;
     const duree = cycle.periodLength || 5;
-    if (!confirm(`Démarrer tes règles aujourd'hui ? (${duree} jours seront marqués, modifiable dans tes paramètres)`)) return;
-    const auj = new Date();
-    const cleAuj = cleDate(auj);
-    cycle.lastPeriodStart = cleAuj;
+    const cleDebut = cleDate(dateDebut);
+    cycle.lastPeriodStart = cleDebut;
     cycle.periodLength = duree;
     cycle.cycleLength = cycle.cycleLength || 28;
     await db.collection('users').doc(uidCourant).set({
-      lastPeriodStart: cleAuj,
+      lastPeriodStart: cleDebut,
       periodLength: cycle.periodLength,
       cycleLength: cycle.cycleLength
     }, { merge: true });
-    // marque aussi les jours dans le journal (utile pour les analyses)
+    // marque les jours dans le journal (utile pour les analyses)
     const lot = db.batch();
     for (let i = 0; i < duree; i++){
-      const d = new Date(auj); d.setDate(d.getDate() + i);
+      const d = new Date(dateDebut); d.setDate(d.getDate() + i);
       lot.set(db.collection('users').doc(uidCourant).collection('journal').doc(cleDate(d)),
               { regles: true }, { merge: true });
       journal[cleDate(d)] = { ...(journal[cleDate(d)] || {}), regles: true };
@@ -798,7 +815,7 @@
     try {
       if (cycle.codePartenaire){
         const e = etatCycle();
-        const proch = new Date(); proch.setDate(proch.getDate() + cycle.cycleLength);
+        const proch = new Date(dateDebut); proch.setDate(proch.getDate() + cycle.cycleLength);
         await db.collection('partage').doc(cycle.codePartenaire).set({
           phase: e.phase,
           prochainesRegles: cleDate(proch),
@@ -808,6 +825,14 @@
     } catch(err){ console.warn('Partage non mis à jour', err); }
 
     toutAfficher();
+  }
+
+  // RÈGLES : démarre les règles aujourd'hui → durée par défaut periodLength
+  document.getElementById('puce-regles').addEventListener('click', async () => {
+    if (!uidCourant) return;
+    const duree = cycle.periodLength || 5;
+    if (!confirm(`Démarrer tes règles aujourd'hui ? (${duree} jours seront marqués, modifiable dans tes paramètres)`)) return;
+    await demarrerReglesDepuis(new Date());
   });
 
   // BILAN : page de bilan quotidien
@@ -896,6 +921,8 @@
     // boutons de retrait des règles
     document.getElementById('fiche-retirer-regles').hidden = !entree.regles;
     document.getElementById('fiche-annuler-debut').hidden = (cle !== cycle.lastPeriodStart);
+    // bouton pour démarrer les règles sur ce jour (masqué si déjà des règles enregistrées)
+    document.getElementById('fiche-demarrer-regles').hidden = !!entree.regles;
 
     document.getElementById('voile').classList.add('visible');
     document.getElementById('fiche-jour').classList.add('visible');
@@ -910,6 +937,17 @@
 
   document.getElementById('fiche-bilan').addEventListener('click', () => {
     window.location.href = 'bilan.html?date=' + cleDate(dateFiche);
+  });
+
+  // démarrer les règles à partir du jour sélectionné dans le calendrier (marque 5 jours auto)
+  document.getElementById('fiche-demarrer-regles').addEventListener('click', async () => {
+    if (!uidCourant || !dateFiche) return;
+    const duree = cycle.periodLength || 5;
+    const libelleJour = dateFiche.toLocaleDateString('fr-FR', { day:'numeric', month:'long' });
+    if (!confirm(`Démarrer tes règles le ${libelleJour} ? (${duree} jours seront marqués automatiquement)`)) return;
+    const d = new Date(dateFiche);
+    fermerFiche();
+    await demarrerReglesDepuis(d);
   });
 
   // retirer les règles d'UN jour (erreur de saisie ponctuelle)
@@ -969,7 +1007,7 @@
   toutAfficher();
 </script>
 <script>
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+  if ('serviceWorker' in navigator && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) navigator.serviceWorker.register('sw.js').catch(function(){});
   document.addEventListener('DOMContentLoaded', window.appliquerTraductions);
 </script>
 </body>
