@@ -4,6 +4,43 @@
 # dans l'interface Codemagic (voir GUIDE-APPSTORE.md).
 
 workflows:
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Workflow de TEST : vérifie que tout compile, SANS compte Apple ni signature.
+  # À lancer pendant que le compte Apple Developer est encore en attente.
+  # ─────────────────────────────────────────────────────────────────────────
+  ios-test-compile:
+    name: MiEndo iOS — test de compilation (non signé)
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    environment:
+      node: 20
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Installer les dépendances JS
+        script: npm install
+      - name: Construire les assets web (www/)
+        script: npm run build
+      - name: Générer la plateforme iOS
+        script: npx cap add ios
+      - name: Compiler pour le simulateur (sans signature)
+        script: |
+          xcodebuild \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+    artifacts:
+      - /tmp/xcodebuild_logs/*.log
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Workflow RÉEL : build signé envoyé sur TestFlight (à utiliser une fois le
+  # compte Apple actif + la clé API App Store Connect ajoutée dans Codemagic).
+  # ─────────────────────────────────────────────────────────────────────────
   ios-miendo:
     name: MiEndo iOS
     instance_type: mac_mini_m2
