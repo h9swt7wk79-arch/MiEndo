@@ -969,7 +969,7 @@
   toutAfficher();
 </script>
 <script>
-  if ('serviceWorker' in navigator && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) navigator.serviceWorker.register('sw.js').catch(function(){});
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
   document.addEventListener('DOMContentLoaded', window.appliquerTraductions);
 </script>
 </body>
