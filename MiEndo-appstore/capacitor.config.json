@@ -1,9 +1,0 @@
-{
-  "appId": "app.miendo",
-  "appName": "MiEndo",
-  "webDir": "www",
-  "ios": {
-    "contentInset": "always",
-    "backgroundColor": "#ffffff"
-  }
-}
