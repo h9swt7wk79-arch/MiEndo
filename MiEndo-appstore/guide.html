@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MiEndo — Bienvenue</title>
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="MiEndo">
+<meta name="theme-color" content="#FD8BAB">
+<link rel="apple-touch-icon" href="assets/icone-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Katibeh&display=swap" rel="stylesheet">
+<script src="assets/preferences.js"></script>
+<script src="assets/i18n.js"></script>
+<style>
+  :root{
+    --noir:#000;--blanc:#FFF;
+    --gris-texte:#828282;--gris-bordure:#E6E6E6;
+    --rose:#FD8BAB;--rose-pale:rgba(253,139,171,.34);
+  }
+  /* ---- préférences d'affichage : mode sombre + échelle de police ---- */
+  html{ font-size:calc(16px * var(--echelle-police, 1)); }
+  .mode-sombre{
+    --noir:#F2F0EF;
+    --blanc:#1C1B1E;
+    --gris-texte:#A8A6AA;
+    --gris-bordure:#3A383D;
+  }
+  .mode-sombre body{ background-color:#121113; }
+  .mode-sombre img:not(.logo, .logo-haut, .photo-recette, [src*="icons/"]){ filter:brightness(.9); }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;overflow:hidden;}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    color:var(--noir);
+    background:
+      linear-gradient(to bottom, rgba(255,255,255,.45), rgba(255,255,255,.65)),
+      url('assets/bg.jpg') center/cover no-repeat fixed;
+    display:flex;flex-direction:column;
+  }
+  .barre-progres{
+    display:flex;gap:6px;
+    padding:18px 20px 0;
+  }
+  .barre-progres .segment{
+    flex:1;height:4px;border-radius:999px;
+    background:rgba(0,0,0,.12);
+    overflow:hidden;
+  }
+  .barre-progres .segment span{
+    display:block;height:100%;width:0%;
+    background:var(--rose);
+    transition:width .25s;
+  }
+  .barre-progres .segment.fait span{width:100%;}
+  .barre-progres .segment.actif span{width:100%;}
+
+  .btn-passer{
+    position:absolute;top:20px;right:18px;
+    background:none;border:none;cursor:pointer;
+    font:inherit;font-size:13px;color:var(--gris-texte);
+    padding:6px 8px;
+  }
+
+  .slides{
+    flex:1;
+    display:flex;
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+  }
+  .slides::-webkit-scrollbar{display:none;}
+  .slide{
+    flex:0 0 100%;
+    scroll-snap-align:center;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;
+    padding:20px 32px 40px;
+  }
+  .slide .carte-slide{
+    background:rgba(255,255,255,.7);
+    border-radius:24px;
+    padding:32px 26px;
+    max-width:340px;
+  }
+  .slide .emoji-grand{
+    font-size:64px;
+    margin-bottom:18px;
+    line-height:1;
+  }
+  .slide h1{
+    font-family:'Katibeh',serif;
+    font-size:36px;font-weight:400;
+    line-height:.95;margin-bottom:14px;
+  }
+  .slide p{
+    font-size:14.5px;line-height:1.6;color:#3A3A3A;
+    max-width:320px;
+  }
+  .slide .mini-nav{
+    display:flex;gap:10px;margin-top:22px;
+    background:rgba(255,255,255,.85);
+    border-radius:14px;padding:10px 14px;
+  }
+  .slide .mini-nav span{font-size:22px;}
+
+  .bas{
+    padding:18px 24px calc(20px + env(safe-area-inset-bottom));
+    display:flex;flex-direction:column;align-items:center;gap:14px;
+  }
+  .points{display:flex;gap:7px;}
+  .points .point{width:7px;height:7px;border-radius:50%;background:var(--gris-bordure);}
+  .points .point.actif{background:var(--rose);width:18px;border-radius:999px;transition:width .2s;}
+  .btn-suivant{
+    width:100%;max-width:320px;height:48px;
+    background:var(--noir);color:var(--blanc);
+    border:none;border-radius:14px;
+    font:inherit;font-weight:600;font-size:15px;cursor:pointer;
+  }
+  .btn-suivant:active{opacity:.85;}
+</style>
+</head>
+<body>
+
+<button class="btn-passer" id="btn-passer">Passer</button>
+
+<div class="barre-progres" id="barre-progres"></div>
+
+<div class="slides" id="slides">
+
+  <div class="slide"><div class="carte-slide">
+    <span class="emoji-grand">🌸</span>
+    <h1>Bienvenue sur MiEndo</h1>
+    <p>Une app pensée pour suivre ton cycle, tes douleurs et ton bien-être au quotidien — créée avec et pour les personnes concernées par l'endométriose.</p>
+  </div></div><div class="slide"><div class="carte-slide">
+    <span class="emoji-grand">💧</span>
+    <h1>L'écran Cycle</h1>
+    <p>L'anneau te montre où tu en es dans ton cycle. Le bouton <strong>Règles</strong> démarre tes règles en un geste, <strong>Bilan</strong> ouvre ton suivi quotidien, et le ⚠️ t'amène en mode <strong>SOS</strong> en cas de crise.</p>
+  </div></div><div class="slide"><div class="carte-slide">
+    <span class="emoji-grand">📝</span>
+    <h1>Ton Bilan quotidien</h1>
+    <p>Douleur, humeur, transit, sommeil, médicaments… Plus tu remplis ton Bilan régulièrement, plus tes <strong>Analyses</strong> deviennent précises — et utiles à montrer à ton équipe de soins.</p>
+  </div></div><div class="slide"><div class="carte-slide">
+    <span class="emoji-grand">🧘‍♀️</span>
+    <h1>Bien-être</h1>
+    <p>Conseils par phase, articles sourcés, yoga interactif, recettes anti-inflammatoires, et une communauté bienveillante pour échanger avec d'autres personnes concernées.</p>
+  </div></div><div class="slide"><div class="carte-slide">
+    <span class="emoji-grand">💑</span>
+    <h1>Espace partenaire</h1>
+    <p>Dans ton Profil, génère un code à partager avec une personne de confiance : elle pourra suivre l'essentiel et t'envoyer un petit mot doux, sans avoir accès à tout ton suivi.</p>
+  </div></div><div class="slide"><div class="carte-slide">
+    <span class="emoji-grand">🧭</span>
+    <h1>Toujours à portée de main</h1>
+    <div class="mini-nav">
+      <span>💧</span><span>⚖️</span><span>📅</span><span>📊</span><span>🍃</span><span>👤</span>
+    </div>
+    <p style="margin-top:18px;">Cycle, Repas, Rendez-vous, Analyses, Bien-être, Profil — toute l'app est à un appui de cette barre, en bas de chaque écran.</p>
+  </div></div></div>
+
+<div class="bas">
+  <div class="points" id="points"></div>
+  <button class="btn-suivant" id="btn-suivant">Suivant</button>
+</div>
+
+<script>
+  const NB_SLIDES = document.querySelectorAll('.slide').length;
+  const slidesEl = document.getElementById('slides');
+  const pointsEl = document.getElementById('points');
+  const progresEl = document.getElementById('barre-progres');
+  let index = 0;
+
+  for (let i = 0; i < NB_SLIDES; i++){
+    const p = document.createElement('span');
+    p.className = 'point' + (i === 0 ? ' actif' : '');
+    pointsEl.appendChild(p);
+
+    const seg = document.createElement('div');
+    seg.className = 'segment';
+    seg.innerHTML = '<span></span>';
+    progresEl.appendChild(seg);
+  }
+
+  function majIndicateurs(){
+    document.querySelectorAll('.point').forEach((p, i) => p.classList.toggle('actif', i === index));
+    document.querySelectorAll('.segment').forEach((s, i) => {
+      s.classList.toggle('fait', i < index);
+      s.classList.toggle('actif', i === index);
+    });
+    document.getElementById('btn-suivant').textContent = (index === NB_SLIDES - 1) ? window.t('guide_btn_fin') : window.t('guide_btn_suivant');
+  }
+
+  function allerA(i){
+    index = Math.max(0, Math.min(NB_SLIDES - 1, i));
+    slidesEl.scrollTo({ left: index * slidesEl.clientWidth, behavior: 'smooth' });
+    majIndicateurs();
+  }
+
+  // suit le défilement manuel (swipe) pour garder les indicateurs synchronisés
+  let minuteurDefilement = null;
+  slidesEl.addEventListener('scroll', () => {
+    clearTimeout(minuteurDefilement);
+    minuteurDefilement = setTimeout(() => {
+      index = Math.round(slidesEl.scrollLeft / slidesEl.clientWidth);
+      majIndicateurs();
+    }, 80);
+  });
+
+  document.getElementById('btn-suivant').addEventListener('click', () => {
+    if (index === NB_SLIDES - 1) terminerGuide();
+    else allerA(index + 1);
+  });
+  document.getElementById('btn-passer').addEventListener('click', terminerGuide);
+
+  function terminerGuide(){
+    window.location.href = 'cycle.html';
+  }
+
+  majIndicateurs();
+</script>
+</body>
+</html>

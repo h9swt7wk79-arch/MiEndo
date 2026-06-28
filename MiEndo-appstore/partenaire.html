@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MiEndo — Espace partenaire</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FD8BAB">
+<link rel="apple-touch-icon" href="assets/icone-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="MiEndo">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Katibeh&display=swap" rel="stylesheet">
+<script src="assets/preferences.js"></script>
+<script src="assets/i18n.js"></script>
+<style>
+  :root{
+    --noir:#000;--blanc:#FFF;
+    --gris-texte:#828282;--gris-bordure:#E6E6E6;
+    --rose:#FD8BAB;--rose-pale:rgba(253,139,171,.34);
+    --radius:10px;
+  }
+  /* ---- préférences d'affichage : mode sombre + échelle de police ---- */
+  html{ font-size:calc(16px * var(--echelle-police, 1)); }
+  .mode-sombre{
+    --noir:#F2F0EF;
+    --blanc:#1C1B1E;
+    --gris-texte:#A8A6AA;
+    --gris-bordure:#3A383D;
+  }
+  .mode-sombre body{ background-color:#121113; }
+  .mode-sombre img:not(.logo, .logo-haut, .photo-recette, [src*="icons/"]){ filter:brightness(.9); }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:14px;color:var(--noir);
+    min-height:100dvh;
+    background:url('assets/bg.jpg') center/cover no-repeat fixed;
+    display:flex;align-items:flex-start;justify-content:center;
+    padding:24px 20px 50px;
+  }
+  .carte{
+    width:100%;max-width:380px;
+    background:rgba(255,255,255,.92);
+    border-radius:20px;
+    padding:26px 22px;
+    box-shadow:0 6px 24px rgba(0,0,0,.08);
+    text-align:center;
+  }
+  .logo{display:block;width:96px;margin:0 auto 8px;}
+  h1{font-family:'Katibeh',serif;font-size:32px;font-weight:400;line-height:.9;padding-top:8px;margin-bottom:6px;}
+  .intro{color:var(--gris-texte);font-size:13px;margin-bottom:18px;}
+  input[type=text]{
+    width:100%;height:46px;
+    border:1px solid var(--gris-bordure);border-radius:var(--radius);
+    padding:0 14px;font:inherit;font-weight:600;
+    letter-spacing:.2em;text-align:center;text-transform:uppercase;
+    outline:none;background:var(--blanc);
+    margin-bottom:12px;
+  }
+  input[type=text]:focus{border-color:var(--gris-texte);}
+  .btn{
+    width:100%;height:44px;
+    background:var(--noir);color:var(--blanc);
+    border:none;border-radius:var(--radius);
+    font:inherit;font-weight:500;cursor:pointer;
+  }
+  .btn:active{opacity:.85;}
+  .message{color:#B3261E;font-size:12.5px;height:16px;margin-top:10px;}
+
+  .infos{display:none;text-align:left;}
+  .infos.visible{display:block;}
+  .bloc-info{
+    background:var(--rose-pale);
+    border-radius:12px;
+    padding:12px 14px;
+    margin-bottom:10px;
+  }
+  .bloc-info .libelle{color:var(--gris-texte);font-size:11.5px;margin-bottom:2px;}
+  .bloc-info .valeur{font-weight:600;font-size:15px;}
+
+  /* historique 7 jours */
+  .historique{margin-bottom:14px;}
+  .historique .titre-section{font-size:12.5px;font-weight:700;color:var(--gris-texte);margin-bottom:8px;}
+  .barres-historique{
+    display:flex;align-items:flex-end;justify-content:space-between;
+    height:90px;gap:6px;
+    background:#FAFAFA;border-radius:12px;padding:10px 10px 6px;
+  }
+  .jour-barre{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;}
+  .jour-barre .barre{
+    width:100%;max-width:22px;border-radius:5px 5px 2px 2px;
+    background:var(--rose);
+    min-height:3px;
+  }
+  .jour-barre .jour-label{font-size:10px;color:var(--gris-texte);margin-top:4px;}
+  .jour-barre.vide .barre{background:#E0E0E0;}
+
+  /* message du jour à envoyer */
+  .retour-zone{
+    background:var(--blanc);
+    border:1px solid var(--gris-bordure);
+    border-radius:12px;
+    padding:12px 14px;
+    margin-bottom:10px;
+    text-align:left;
+  }
+  .retour-zone .titre-section{font-size:12.5px;font-weight:700;color:var(--gris-texte);margin-bottom:8px;}
+  textarea{
+    width:100%;min-height:60px;
+    border:1px solid var(--gris-bordure);border-radius:var(--radius);
+    padding:8px 10px;font:inherit;font-size:13px;resize:vertical;outline:none;
+    margin-bottom:8px;color:var(--noir);background:var(--blanc);
+  }
+  .btn-petit{
+    background:var(--rose);color:var(--blanc);
+    border:none;border-radius:999px;
+    padding:8px 16px;font:inherit;font-weight:600;font-size:12.5px;cursor:pointer;
+  }
+  .btn-petit:active{opacity:.85;}
+  .confirmation-envoi{font-size:11.5px;color:#1E7B34;margin-top:6px;height:14px;}
+
+  .note{color:var(--gris-texte);font-size:11.5px;margin-top:12px;line-height:1.5;}
+  .lien-retour{display:inline-block;margin-top:16px;font-size:13px;color:var(--noir);font-weight:600;}
+  .lien-discret{
+    display:inline-block;margin-top:8px;font-size:11.5px;color:var(--gris-texte);
+    text-decoration:underline;background:none;border:none;cursor:pointer;font-family:inherit;
+  }
+</style>
+</head>
+<body>
+
+<main class="carte">
+  <img class="logo" src="assets/logo.png" alt="MiEndo">
+  <h1>Espace partenaire</h1>
+
+  <div id="zone-connexion">
+    <p class="intro">Saisis le code partagé par ta moitié pour suivre les informations importantes.</p>
+    <input type="text" id="champ-code" placeholder="CODE" maxlength="8" autocomplete="off">
+    <button class="btn" id="btn-acceder">Accéder</button>
+    <div class="message" id="message"></div>
+  </div>
+
+  <div class="infos" id="zone-infos">
+    <div class="bloc-info">
+      <div class="libelle">Phase actuelle</div>
+      <div class="valeur" id="info-phase">–</div>
+    </div>
+    <div class="bloc-info">
+      <div class="libelle">Jour du cycle</div>
+      <div class="valeur" id="info-jour">–</div>
+    </div>
+    <div class="bloc-info">
+      <div class="libelle">Prochaines règles (estimation)</div>
+      <div class="valeur" id="info-regles">–</div>
+    </div>
+    <div class="bloc-info">
+      <div class="libelle">Douleur aujourd'hui</div>
+      <div class="valeur" id="info-douleur">–</div>
+    </div>
+    <div class="bloc-info">
+      <div class="libelle">Bien-être du jour</div>
+      <div class="valeur" id="info-bienetre">–</div>
+    </div>
+
+    <div class="historique" id="zone-historique">
+      <div class="titre-section">Douleur — 7 derniers jours</div>
+      <div class="barres-historique" id="barres-historique"></div>
+    </div>
+
+    <div class="bloc-info">
+      <div class="libelle">Comment aider en ce moment</div>
+      <div class="valeur" id="info-aider" style="font-weight:400;font-size:13px;line-height:1.5;">–</div>
+    </div>
+
+    <div class="retour-zone">
+      <div class="titre-section">Lui envoyer une pensée</div>
+      <textarea id="champ-message" placeholder="Un petit mot doux, un encouragement…" maxlength="200"></textarea>
+      <button class="btn-petit" id="btn-envoyer-message">Envoyer 💗</button>
+      <div class="confirmation-envoi" id="confirmation-envoi"></div>
+    </div>
+
+    <p class="note">Ces informations sont partagées volontairement. Les jours difficiles, ta présence et ta patience comptent plus que tout 💗</p>
+    <button class="lien-discret" id="btn-changer-code">Utiliser un autre code</button>
+  </div>
+
+  <a class="lien-retour" href="index.html">‹ Retour à la connexion</a>
+</main>
+
+<!-- ============ FIREBASE ============ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDunVhY9SnccIn78SU0SWyFDrXDrbSM9dw",
+    authDomain: "mimiendo-73245.firebaseapp.com",
+    projectId: "mimiendo-73245",
+    storageBucket: "mimiendo-73245.firebasestorage.app",
+    messagingSenderId: "989010109768",
+    appId: "1:989010109768:web:8cf8cf916f04ac5feebf7d",
+    measurementId: "G-2ZF2VBZP3G"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  const CLE_CODE_LOCAL = 'miendo_code_partenaire';
+  let codeActuel = null;
+
+  const AIDER = {
+    'Phase menstruelle': "C'est souvent la phase la plus douloureuse avec une endométriose. Propose une bouillotte, prends en charge les tâches du quotidien, et ne minimise jamais la douleur — la croire, c'est déjà l'aider.",
+    'Phase folliculaire': "L'énergie remonte en général : bon moment pour les sorties et les projets à deux. Profitez-en !",
+    'Phase ovulatoire': "Des douleurs pelviennes d'un côté peuvent apparaître même hors règles. Sois attentif·ve sans dramatiser, la chaleur aide aussi à ce moment-là.",
+    'Phase lutéale': "Fatigue, ballonnements et irritabilité peuvent s'accentuer à l'approche des règles — c'est hormonal, pas personnel. Patience, douceur, et un agenda allégé font la différence."
+  };
+
+  function afficherHistorique(historique){
+    const conteneur = document.getElementById('barres-historique');
+    conteneur.innerHTML = '';
+    if (!historique || !historique.length){
+      document.getElementById('zone-historique').hidden = true;
+      return;
+    }
+    document.getElementById('zone-historique').hidden = false;
+    const JOURS = ['Di','Lu','Ma','Me','Je','Ve','Sa'];
+    historique.forEach(j => {
+      const div = document.createElement('div');
+      div.className = 'jour-barre' + (j.douleur == null ? ' vide' : '');
+      const hauteur = j.douleur == null ? 4 : Math.max(4, j.douleur * 8);
+      const d = new Date(j.date + 'T00:00:00');
+      div.innerHTML = `<div class="barre" style="height:${hauteur}px;" title="${j.douleur != null ? j.douleur + '/10' : 'non renseigné'}"></div>
+                        <span class="jour-label">${JOURS[d.getDay()]}</span>`;
+      conteneur.appendChild(div);
+    });
+  }
+
+  function afficherDonnees(d){
+    document.getElementById('info-phase').textContent = d.phase || 'Pas encore renseignée';
+    document.getElementById('info-jour').textContent = d.jourCycle ? 'J' + d.jourCycle : '–';
+    document.getElementById('info-aider').textContent =
+      AIDER[d.phase] || "Sois présent·e, écoute, et crois sa douleur : c'est la base de tout.";
+    document.getElementById('info-regles').textContent = d.prochainesRegles
+      ? new Date(d.prochainesRegles + 'T00:00:00').toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' })
+      : 'Pas encore estimées';
+    const aujISO = new Date().toISOString().slice(0,10);
+    document.getElementById('info-douleur').textContent =
+      (d.dateBilan === aujISO && typeof d.douleurDuJour === 'number')
+        ? d.douleurDuJour + '/10'
+        : 'Pas encore renseignée aujourd\u2019hui';
+    document.getElementById('info-bienetre').textContent =
+      (d.dateBilan === aujISO && d.bienetreDuJour) || '–';
+    afficherHistorique(d.historique7j);
+  }
+
+  async function tenterConnexion(code, afficherErreurs = true){
+    const message = document.getElementById('message');
+    message.textContent = '';
+    try {
+      if (!auth.currentUser) await auth.signInAnonymously();
+      const doc = await db.collection('partage').doc(code).get();
+      if (!doc.exists){
+        if (afficherErreurs) message.textContent = 'Code introuvable. Vérifie auprès de ta moitié.';
+        localStorage.removeItem(CLE_CODE_LOCAL);
+        return false;
+      }
+      afficherDonnees(doc.data());
+      codeActuel = code;
+      localStorage.setItem(CLE_CODE_LOCAL, code);
+      document.getElementById('zone-connexion').style.display = 'none';
+      document.getElementById('zone-infos').classList.add('visible');
+      return true;
+    } catch (err){
+      console.error(err);
+      if (afficherErreurs){
+        message.textContent = err.code === 'auth/operation-not-allowed'
+          ? "L'accès anonyme n'est pas activé (console Firebase)."
+          : 'Connexion impossible. Réessaie.';
+      }
+      return false;
+    }
+  }
+
+  document.getElementById('btn-acceder').addEventListener('click', () => {
+    const code = document.getElementById('champ-code').value.trim().toUpperCase();
+    if (code.length < 6){ document.getElementById('message').textContent = 'Code invalide.'; return; }
+    tenterConnexion(code);
+  });
+  document.getElementById('champ-code').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('btn-acceder').click();
+  });
+
+  // connexion persistante : on retente automatiquement avec le code mémorisé
+  window.addEventListener('DOMContentLoaded', () => {
+    const memorise = localStorage.getItem(CLE_CODE_LOCAL);
+    if (memorise) tenterConnexion(memorise, false);
+  });
+
+  document.getElementById('btn-changer-code').addEventListener('click', () => {
+    localStorage.removeItem(CLE_CODE_LOCAL);
+    codeActuel = null;
+    document.getElementById('zone-infos').classList.remove('visible');
+    document.getElementById('zone-connexion').style.display = 'block';
+    document.getElementById('champ-code').value = '';
+    document.getElementById('champ-code').focus();
+  });
+
+  // message du jour, lu par l'utilisatrice sur son écran Cycle
+  document.getElementById('btn-envoyer-message').addEventListener('click', async () => {
+    const champ = document.getElementById('champ-message');
+    const texte = champ.value.trim();
+    const confirmation = document.getElementById('confirmation-envoi');
+    if (!texte || !codeActuel) { console.log('[debug envoi] bloqué : texte ou codeActuel manquant', {texte, codeActuel}); return; }
+    console.log('[debug envoi] écriture dans partage/' + codeActuel, { texte },
+                'longueur=', codeActuel.length, 'codes=', [...codeActuel].map(c => c.charCodeAt(0)));
+    try {
+      await db.collection('partage').doc(codeActuel).set({
+        messagePartenaire: texte,
+        messagePartenaireLe: Date.now()
+      }, { merge: true });
+      console.log('[debug envoi] écriture confirmée par le SDK');
+
+      // relecture immédiate pour vérifier que ça a bien été pris en compte serveur
+      const verif = await db.collection('partage').doc(codeActuel).get({ source: 'server' });
+      console.log('[debug envoi] relecture serveur :', verif.data());
+
+      champ.value = '';
+      confirmation.textContent = 'Envoyé 💗';
+      setTimeout(() => confirmation.textContent = '', 2500);
+    } catch (err){
+      console.error('[debug envoi] ERREUR', err);
+      confirmation.style.color = '#B3261E';
+      confirmation.textContent = "Échec de l'envoi, réessaie.";
+    }
+  });
+
+  if ('serviceWorker' in navigator && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) navigator.serviceWorker.register('sw.js').catch(function(){});
+  document.addEventListener('DOMContentLoaded', window.appliquerTraductions);
+</script>
+</body>
+</html>
